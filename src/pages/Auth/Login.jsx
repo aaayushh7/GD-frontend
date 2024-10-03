@@ -10,11 +10,13 @@ import { PizzaIcon, LockIcon, MailIcon } from "lucide-react";
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loginError, setLoginError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const [login, { isLoading }] = useLoginMutation();
+  const [login] = useLoginMutation();
 
   const { userInfo } = useSelector((state) => state.auth);
 
@@ -30,12 +32,36 @@ const Login = () => {
 
   const submitHandler = async (e) => {
     e.preventDefault();
+    setLoginError("");
+    setIsSubmitting(true);
+
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error("Request timed out")), 5000)
+    );
+
     try {
-      const res = await login({ email, password }).unwrap();
+      const loginPromise = login({ email, password }).unwrap();
+      const res = await Promise.race([loginPromise, timeoutPromise]);
+
+      if (res.error) {
+        throw new Error(res.error);
+      }
+
       dispatch(setCredentials({ ...res }));
       navigate(redirect);
     } catch (err) {
-      toast.error(err?.data?.message || err.error);
+      let errorMessage;
+      if (err.message === "Request timed out") {
+        errorMessage = "Login request timed out. Please try again.";
+      } else if (err.status === 401) {
+        errorMessage = "Invalid email or password.";
+      } else {
+        errorMessage = err.data?.message || err.message || "An error occurred. Please try again.";
+      }
+      setLoginError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -66,6 +92,7 @@ const Login = () => {
                 placeholder="youremail@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                required
               />
             </div>
           </div>
@@ -83,16 +110,21 @@ const Login = () => {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                required
               />
             </div>
           </div>
 
+          {loginError && (
+            <div className="mb-4 text-red-500 text-sm text-center">{loginError}</div>
+          )}
+
           <button
-            disabled={isLoading}
+            disabled={isSubmitting}
             type="submit"
             className="w-full bg-yellow-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-yellow-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-opacity-50 transform hover:-translate-y-1 active:translate-y-0"
           >
-            {isLoading ? (
+            {isSubmitting ? (
               <motion.div
                 animate={{ rotate: 360 }}
                 transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
