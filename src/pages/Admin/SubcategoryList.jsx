@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import {
   useCreateSubcategoryMutation,
   useUpdateSubcategoryMutation,
@@ -6,9 +6,7 @@ import {
   useFetchSubcategoriesQuery,
   useFetchCategoriesQuery,
 } from "../../redux/api/categoryApiSlice";
-
 import { toast } from "react-toastify";
-import SubcategoryForm from "../../components/SubcategoryForm";
 import Modal from "../../components/Modal";
 import AdminMenu from "./AdminMenu";
 
@@ -25,14 +23,12 @@ const SubcategoryList = () => {
   const [updateSubcategory] = useUpdateSubcategoryMutation();
   const [deleteSubcategory] = useDeleteSubcategoryMutation();
 
-  const handleCreateSubcategory = async (e) => {
+  const handleCreateSubcategory = useCallback(async (e) => {
     e.preventDefault();
-
     if (!name || !parentId) {
       toast.error("Subcategory name and parent category are required");
       return;
     }
-
     try {
       const result = await createSubcategory({ name, parentId }).unwrap();
       if (result.error) {
@@ -46,24 +42,19 @@ const SubcategoryList = () => {
       console.error(error);
       toast.error("Creating subcategory failed, try again.");
     }
-  };
+  }, [name, parentId, createSubcategory]);
 
-  const handleUpdateSubcategory = async (e) => {
+  const handleUpdateSubcategory = useCallback(async (e) => {
     e.preventDefault();
-
     if (!updatingName) {
       toast.error("Subcategory name is required");
       return;
     }
-
     try {
       const result = await updateSubcategory({
         subcategoryId: selectedSubcategory._id,
-        updatedSubcategory: {
-          name: updatingName,
-        },
+        updatedSubcategory: { name: updatingName },
       }).unwrap();
-
       if (result.error) {
         toast.error(result.error);
       } else {
@@ -76,12 +67,11 @@ const SubcategoryList = () => {
       console.error(error);
       toast.error("Updating subcategory failed, try again.");
     }
-  };
+  }, [updatingName, selectedSubcategory, updateSubcategory]);
 
-  const handleDeleteSubcategory = async () => {
+  const handleDeleteSubcategory = useCallback(async () => {
     try {
       const result = await deleteSubcategory(selectedSubcategory._id).unwrap();
-
       if (result.error) {
         toast.error(result.error);
       } else {
@@ -93,65 +83,92 @@ const SubcategoryList = () => {
       console.error(error);
       toast.error("Subcategory deletion failed. Try again.");
     }
-  };
+  }, [selectedSubcategory, deleteSubcategory]);
 
-//   if (isLoadingSubcategories || isLoadingCategories) {
-//     return <div>Loading...</div>;
-//   }
+  const categoryOptions = useMemo(() =>
+    categories?.map(category => ({
+      value: category._id,
+      label: category.name
+    })) || [],
+    [categories]
+  );
 
   return (
-    <div className="bg-amber-50 min-h-screen container mx-auto px-4 py-8">
-      <div className="flex flex-col md:flex-row">
-        <AdminMenu />
-        <div className="flex-1 p-6 md:p-8 lg:p-10 mt-9">
-          <h1 className="text-3xl font-bold text-amber-800 mb-8">Manage Subcategories</h1>
-          <div className="bg-white rounded-lg shadow-md p-6 mb-8 border border-amber-200">
-            <h2 className="text-xl font-semibold text-amber-700 mb-4">Create New Subcategory</h2>
-            <SubcategoryForm
-              name={name}
-              setName={setName}
-              parentId={parentId}
-              setParentId={setParentId}
-              categories={categories}
-              handleSubmit={handleCreateSubcategory}
-              buttonText="Create Subcategory"
-              buttonClass="bg-amber-600 hover:bg-amber-700 text-white"
-            />
-          </div>
-          
-          <div className="bg-white rounded-lg shadow-md p-6 border border-amber-200">
-            <h2 className="text-xl font-semibold text-amber-700 mb-4">Existing Subcategories</h2>
-            <div className="flex flex-wrap gap-3">
-              {subcategories?.map((subcategory) => (
-                <button
-                  key={subcategory._id}
-                  className="bg-amber-100 text-amber-800 py-2 px-4 rounded-full hover:bg-amber-200 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition-all duration-300"
-                  onClick={() => {
-                    setModalVisible(true);
-                    setSelectedSubcategory(subcategory);
-                    setUpdatingName(subcategory.name);
-                  }}
+    <div className="bg-yellow-50 min-h-screen">
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex flex-col md:flex-row">
+          <AdminMenu />
+          <div className="flex-1 p-6 md:p-8 lg:p-10 mt-9">
+            <h1 className="text-3xl font-bold text-yellow-800 mb-8">Manage Subcategories</h1>
+            <div className="bg-white rounded-lg shadow-md p-6 mb-8 border border-yellow-200">
+              <h2 className="text-xl font-semibold text-yellow-700 mb-4">Create New Subcategory</h2>
+              <form onSubmit={handleCreateSubcategory} className="space-y-4">
+                <input
+                  type="text"
+                  placeholder="Subcategory Name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full px-3 py-2 border border-yellow-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                />
+                <select
+                  value={parentId}
+                  onChange={(e) => setParentId(e.target.value)}
+                  className="w-full px-3 py-2 border border-yellow-300 rounded-md focus:outline-none text-black focus:ring-2 focus:ring-yellow-500"
                 >
-                  {subcategory.name}
+                  <option value="">Select Parent Category</option>
+                  {categoryOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+                <button type="submit" className="w-full bg-yellow-600 hover:bg-yellow-700 text-white py-2 px-4 rounded-md transition-colors duration-300">
+                  Create Subcategory
                 </button>
-              ))}
+              </form>
             </div>
-          </div>
 
-          <Modal isOpen={modalVisible} onClose={() => setModalVisible(false)}>
-            <div className="bg-white rounded-lg p-6">
-              <h2 className="text-2xl font-bold text-amber-800 mb-4">Update Subcategory</h2>
-              <SubcategoryForm
-                name={updatingName}
-                setName={setUpdatingName}
-                handleSubmit={handleUpdateSubcategory}
-                buttonText="Update"
-                handleDelete={handleDeleteSubcategory}
-                buttonClass="bg-amber-600 hover:bg-amber-700 text-white"
-                deleteButtonClass="bg-red-600 hover:bg-red-700 text-white"
-              />
+            <div className="bg-white rounded-lg shadow-md p-6 border border-yellow-200">
+              <h2 className="text-xl font-semibold text-yellow-700 mb-4">Existing Subcategories</h2>
+              <div className="flex flex-wrap gap-3">
+                {subcategories?.map((subcategory) => (
+                  <button
+                    key={subcategory._id}
+                    className="bg-yellow-100 text-yellow-800 py-2 px-4 rounded-full hover:bg-yellow-200 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-opacity-50 transition-all duration-300"
+                    onClick={() => {
+                      setModalVisible(true);
+                      setSelectedSubcategory(subcategory);
+                      setUpdatingName(subcategory.name);
+                    }}
+                  >
+                    {subcategory.name}
+                  </button>
+                ))}
+              </div>
             </div>
-          </Modal>
+
+            <Modal isOpen={modalVisible} onClose={() => setModalVisible(false)}>
+              <div className="bg-white rounded-lg p-6">
+                <h2 className="text-2xl font-bold text-yellow-800 mb-4">Update Subcategory</h2>
+                <form onSubmit={handleUpdateSubcategory} className="space-y-4">
+                  <input
+                    type="text"
+                    value={updatingName}
+                    onChange={(e) => setUpdatingName(e.target.value)}
+                    className="w-full px-3 py-2 border border-yellow-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                  />
+                  <div className="flex justify-between">
+                    <button type="submit" className="bg-yellow-600 hover:bg-yellow-700 text-white py-2 px-4 rounded-md transition-colors duration-300">
+                      Update
+                    </button>
+                    <button type="button" onClick={handleDeleteSubcategory} className="bg-black hover:bg-gray-800 text-white py-2 px-4 rounded-md transition-colors duration-300">
+                      Delete
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </Modal>
+          </div>
         </div>
       </div>
     </div>

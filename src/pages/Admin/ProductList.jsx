@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   useCreateProductMutation,
@@ -9,46 +9,58 @@ import { toast } from "react-toastify";
 import AdminMenu from "./AdminMenu";
 
 const ProductList = () => {
-  const [image, setImage] = useState("");
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [price, setPrice] = useState("");
-  const [category, setCategory] = useState("");
-  const [subcategory, setSubcategory] = useState("");
-  const [quantity, setQuantity] = useState("");
-  const [brand, setBrand] = useState("");
-  const [stock, setStock] = useState(0);
+  const [formData, setFormData] = useState({
+    name: "",
+    description: "",
+    price: "",
+    category: "",
+    subcategory: "",
+    quantity: "",
+    brand: "",
+    countInStock: "",
+  });
+  const [image, setImage] = useState(null);
   const [imageUrl, setImageUrl] = useState(null);
   const navigate = useNavigate();
 
   const [uploadProductImage] = useUploadProductImageMutation();
   const [createProduct] = useCreateProductMutation();
-  const { data: categories } = useFetchCategoriesQuery();
+  const { data: categories, refetch: refetchCategories } = useFetchCategoriesQuery();
 
   const [subcategories, setSubcategories] = useState([]);
 
-  useEffect(() => {
-    if (category) {
-      const selectedCategory = categories.find(c => c._id === category);
+  const updateSubcategories = useCallback((categoryId) => {
+    if (categoryId) {
+      const selectedCategory = categories?.find(c => c._id === categoryId);
       setSubcategories(selectedCategory?.subcategories || []);
-      setSubcategory(""); // Reset subcategory when category changes
+      setFormData(prev => ({ ...prev, subcategory: "" })); // Reset subcategory when category changes
+    } else {
+      setSubcategories([]);
     }
-  }, [category, categories]);
+  }, [categories]);
+
+  useEffect(() => {
+    refetchCategories();
+  }, [refetchCategories]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    if (name === "category") {
+      updateSubcategories(value);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
       const productData = new FormData();
-      productData.append("image", image);
-      productData.append("name", name);
-      productData.append("description", description);
-      productData.append("price", price);
-      productData.append("category", category);
-      productData.append("subcategory", subcategory);
-      productData.append("quantity", quantity);
-      productData.append("brand", brand);
-      productData.append("countInStock", stock);
+      Object.keys(formData).forEach(key => {
+        productData.append(key, formData[key]);
+      });
+      if (image) {
+        productData.append('image', image);
+      }
 
       const { data } = await createProduct(productData);
 
@@ -65,13 +77,14 @@ const ProductList = () => {
   };
 
   const uploadFileHandler = async (e) => {
+    const file = e.target.files[0];
     const formData = new FormData();
-    formData.append("image", e.target.files[0]);
+    formData.append("image", file);
 
     try {
       const res = await uploadProductImage(formData).unwrap();
       toast.success(res.message);
-      setImage(res.image);
+      setImage(file);
       setImageUrl(res.image);
     } catch (error) {
       toast.error(error?.data?.message || error.error);
@@ -79,94 +92,67 @@ const ProductList = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 bg-amber-50">
+    <div className="container mx-auto px-4 bg-white">
       <div className="flex flex-col md:flex-row">
         <AdminMenu />
-        <div className="md:w-3/4 p-6 mt-9">
-          <h2 className="text-3xl font-bold text-amber-800 mb-6">Create Product</h2>
+        <div className="md:w-3/4 mt-9 bg-yellow-100 p-6 rounded-lg shadow-md">
+          <h2 className="text-3xl font-bold text-black mb-6">Create Product</h2>
 
           {imageUrl && (
             <div className="text-center mb-6">
               <img
                 src={imageUrl}
                 alt="product"
-                className="block mx-auto max-h-[200px] rounded-lg shadow-md"
+                className="mx-auto max-h-[200px] rounded-lg shadow-md"
               />
             </div>
           )}
 
-          <div className="mb-6">
-            <label className="block w-full text-center rounded-lg cursor-pointer font-semibold py-4 bg-amber-600 text-white hover:bg-amber-700 transition duration-300">
-              {image ? image.name : "Upload Image"}
-              <input
-                type="file"
-                name="image"
-                accept="image/*"
-                onChange={uploadFileHandler}
-                className="hidden"
-              />
-            </label>
-          </div>
-
           <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="mb-6">
+              <label className="block w-full text-center rounded-lg cursor-pointer font-semibold py-4 bg-yellow-400 text-black hover:bg-yellow-500 transition duration-300">
+                {image ? image.name : "Upload Image"}
+                <input
+                  type="file"
+                  name="image"
+                  accept="image/*"
+                  onChange={uploadFileHandler}
+                  className="hidden"
+                />
+              </label>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {[
+                { name: "name", label: "Name", type: "text" },
+                { name: "price", label: "Price", type: "number" },
+                { name: "quantity", label: "Quantity", type: "number" },
+                { name: "brand", label: "Brand", type: "text" },
+                { name: "countInStock", label: "Count In Stock", type: "number" },
+              ].map((field) => (
+                <div key={field.name}>
+                  <label htmlFor={field.name} className="block text-black font-medium mb-2">{field.label}</label>
+                  <input
+                    type={field.type}
+                    id={field.name}
+                    name={field.name}
+                    value={formData[field.name]}
+                    onChange={handleChange}
+                    className="w-full p-3 border border-yellow-400 rounded-lg bg-white text-black focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                    required
+                  />
+                </div>
+              ))}
+
               <div>
-                <label htmlFor="name" className="block text-amber-800 font-medium mb-2">Name</label>
-                <input
-                  type="text"
-                  id="name"
-                  className="w-full p-3 border border-amber-300 rounded-lg bg-white text-amber-900"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
-              </div>
-              <div>
-                <label htmlFor="price" className="block text-amber-800 font-medium mb-2">Price</label>
-                <input
-                  type="number"
-                  id="price"
-                  className="w-full p-3 border border-amber-300 rounded-lg bg-white text-amber-900"
-                  value={price}
-                  onChange={(e) => setPrice(e.target.value)}
-                />
-              </div>
-              <div>
-                <label htmlFor="quantity" className="block text-amber-800 font-medium mb-2">Quantity</label>
-                <input
-                  type="number"
-                  id="quantity"
-                  className="w-full p-3 border border-amber-300 rounded-lg bg-white text-amber-900"
-                  value={quantity}
-                  onChange={(e) => setQuantity(e.target.value)}
-                />
-              </div>
-              <div>
-                <label htmlFor="brand" className="block text-amber-800 font-medium mb-2">Brand</label>
-                <input
-                  type="text"
-                  id="brand"
-                  className="w-full p-3 border border-amber-300 rounded-lg bg-white text-amber-900"
-                  value={brand}
-                  onChange={(e) => setBrand(e.target.value)}
-                />
-              </div>
-              <div>
-                <label htmlFor="stock" className="block text-amber-800 font-medium mb-2">Count In Stock</label>
-                <input
-                  type="number"
-                  id="stock"
-                  className="w-full p-3 border border-amber-300 rounded-lg bg-white text-amber-900"
-                  value={stock}
-                  onChange={(e) => setStock(e.target.value)}
-                />
-              </div>
-              <div>
-                <label htmlFor="category" className="block text-amber-800 font-medium mb-2">Category</label>
+                <label htmlFor="category" className="block text-black font-medium mb-2">Category</label>
                 <select
                   id="category"
-                  className="w-full p-3 border border-amber-300 rounded-lg bg-white text-amber-900"
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
+                  name="category"
+                  value={formData.category}
+                  onChange={handleChange}
+                  className="w-full p-3 border border-yellow-400 rounded-lg bg-white text-black focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                  required
                 >
                   <option value="">Select a category</option>
                   {categories?.map((c) => (
@@ -176,14 +162,17 @@ const ProductList = () => {
                   ))}
                 </select>
               </div>
+
               <div>
-                <label htmlFor="subcategory" className="block text-amber-800 font-medium mb-2">Subcategory</label>
+                <label htmlFor="subcategory" className="block text-black font-medium mb-2">Subcategory</label>
                 <select
                   id="subcategory"
-                  className="w-full p-3 border border-amber-300 rounded-lg bg-white text-amber-900"
-                  value={subcategory}
-                  onChange={(e) => setSubcategory(e.target.value)}
-                  disabled={!category}
+                  name="subcategory"
+                  value={formData.subcategory}
+                  onChange={handleChange}
+                  className="w-full p-3 border border-yellow-400 rounded-lg bg-white text-black focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                  required
+                  disabled={!formData.category}
                 >
                   <option value="">Select a subcategory</option>
                   {subcategories.map((sc) => (
@@ -196,19 +185,21 @@ const ProductList = () => {
             </div>
 
             <div>
-              <label htmlFor="description" className="block text-amber-800 font-medium mb-2">Description</label>
+              <label htmlFor="description" className="block text-black font-medium mb-2">Description</label>
               <textarea
                 id="description"
+                name="description"
                 rows="4"
-                className="w-full p-3 border border-amber-300 rounded-lg bg-white text-amber-900"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
+                value={formData.description}
+                onChange={handleChange}
+                className="w-full p-3 border border-yellow-400 rounded-lg bg-white text-black focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                required
               ></textarea>
             </div>
 
             <button
               type="submit"
-              className="w-full py-3 px-6 rounded-lg text-lg font-bold bg-amber-600 text-white hover:bg-amber-700 transition duration-300"
+              className="w-full py-3 px-6 rounded-lg text-lg font-bold bg-yellow-400 text-black hover:bg-yellow-500 transition duration-300"
             >
               Create Product
             </button>
