@@ -1,0 +1,24 @@
+/* Google Fonts import */
+@import url('https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Outfit:wght@100..900&display=swap');
+
+/* Tailwind directives */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Your custom styles */
+body {
+  background: #0f0f10;
+  color: #fff;
+  font-family: 'Outfit', sans-serif;
+}
+
+input,
+textarea {
+  color: #000;
+}
+
+/* You can also specify the font for specific elements if needed */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Outfit', sans-serif;
+}
