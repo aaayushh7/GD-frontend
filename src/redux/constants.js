@@ -1,5 +1,5 @@
 // export const BASE_URL = "https://api.nsrice.in/";
-export const BASE_URL = "http://localhost:4000/";
+export const BASE_URL = "https://api.cravehub.store/";
 export const USERS_URL = "/api/users";
 export const CATEGORY_URL = "/api/category";
 export const PRODUCT_URL = "/api/products";
