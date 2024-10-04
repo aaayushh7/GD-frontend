@@ -182,8 +182,20 @@ const Shipping = () => {
     return (
       <div className="flex justify-center items-center h-screen bg-amber-50">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-amber-500"></div>
-          <p className="mt-4 text-amber-800 font-semibold">Checking for saved address...</p>
+          <div className="relative w-32 h-32">
+            <div className="absolute inset-0 animate-spin">
+              <svg className="w-full h-full" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="45" fill="none" stroke="#FBBF24" strokeWidth="8" strokeDasharray="70 30" />
+              </svg>
+            </div>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <svg className="w-16 h-16 text-amber-600" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <path d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zm2 5V6a2 2 0 10-4 0v1h4zm-6 3a1 1 0 112 0 1 1 0 01-2 0zm7-1a1 1 0 100 2 1 1 0 000-2z" />
+              </svg>
+            </div>
+          </div>
+          <p className="mt-4 text-amber-800 font-semibold text-lg">Checking for saved address in database...</p>
+          <p className="mt-2 text-amber-600">Your delicious meal is just moments away!</p>
         </div>
       </div>
     );

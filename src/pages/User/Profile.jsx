@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import { useProfileMutation } from '../../redux/api/usersApiSlice';
-import { useGetUserAddressQuery, useUpdateAddressMutation } from '../../redux/api/addressApiSlice';
+import { useGetUserAddressQuery,
+  useUpdateAddressMutation, useSaveAddressMutation } from '../../redux/api/addressApiSlice';
 import { setCredentials } from '../../redux/features/auth/authSlice';
 import Loader from '../../components/Loader';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -23,6 +24,7 @@ const Profile = ({ onClose }) => {
     postalCode: '',
     country: '',
   });
+  const [isLoadingAddress, setIsLoadingAddress] = useState(false);
 
   const dispatch = useDispatch();
   const { userInfo } = useSelector((state) => state.auth);
@@ -30,6 +32,7 @@ const Profile = ({ onClose }) => {
   const [updateProfile, { isLoading: loadingUpdateProfile }] = useProfileMutation();
   const { data: userAddress, isLoading: loadingAddress, refetch: refetchAddress } = useGetUserAddressQuery();
   const [updateAddress, { isLoading: loadingUpdateAddress }] = useUpdateAddressMutation();
+  const [addAddress, { isLoading: loadingAddAddress }] = useSaveAddressMutation();
 
   useEffect(() => {
     if (userInfo) {
@@ -78,13 +81,31 @@ const Profile = ({ onClose }) => {
 
   const handleSaveAddress = async () => {
     try {
-      await updateAddress({ id: userAddress._id, ...editedAddress }).unwrap();
+      if (userAddress) {
+        await updateAddress({ id: userAddress._id, ...editedAddress }).unwrap();
+      } else {
+        await addAddress(editedAddress).unwrap();
+      }
       toast.success('Address updated successfully');
       setIsEditingAddress(false);
       refetchAddress();
     } catch (err) {
       toast.error(err?.data?.message || err.error);
     }
+  };
+
+  const handleShowAddress = async () => {
+    if (!showAddress) {
+      setIsLoadingAddress(true);
+      try {
+        await refetchAddress();
+      } catch (error) {
+        toast.error('Failed to fetch address. Please try again.');
+      } finally {
+        setIsLoadingAddress(false);
+      }
+    }
+    setShowAddress(!showAddress);
   };
 
   const faqItems = [
@@ -207,18 +228,25 @@ const Profile = ({ onClose }) => {
       <div className="mt-6">
         <button
           type="button"
-          onClick={() => setShowAddress(!showAddress)}
-          disabled={!userAddress}
-          className={`w-full py-3 px-4 rounded-md transition duration-300 shadow-md ${
-            userAddress
-              ? 'bg-yellow-500 text-gray-800 hover:bg-yellow-700'
-              : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+          onClick={handleShowAddress}
+          disabled={isLoadingAddress}
+          className={`w-full bg-yellow-500 text-gray-800 py-3 px-4 rounded-md hover:bg-yellow-700 transition duration-300 shadow-md relative ${
+            isLoadingAddress ? 'opacity-75 cursor-not-allowed' : ''
           }`}
         >
-          My Address
+          {isLoadingAddress ? (
+            <>
+              <span className="opacity-0">My Address</span>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-5 h-5 border-t-2 border-b-2 border-gray-900 rounded-full animate-spin"></div>
+              </div>
+            </>
+          ) : (
+            'My Address'
+          )}
         </button>
         <AnimatePresence>
-          {showAddress && userAddress && (
+          {showAddress && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
@@ -226,61 +254,114 @@ const Profile = ({ onClose }) => {
               transition={{ duration: 0.3 }}
               className="mt-4 p-4 bg-white bg-opacity-50 rounded-md overflow-hidden"
             >
-              <div className="flex justify-between items-center mb-2">
-                <h3 className="text-lg font-semibold text-yellow-800">Saved Address</h3>
-                <button
-                  onClick={handleEditAddress}
-                  className="px-3 py-1 bg-yellow-500 text-gray-800 rounded-md hover:bg-yellow-700 transition duration-300"
-                >
-                  Edit
-                </button>
-              </div>
-              {isEditingAddress ? (
-                <div className="space-y-2">
-                  <input
-                    type="text"
-                    value={editedAddress.address}
-                    onChange={(e) => setEditedAddress({ ...editedAddress, address: e.target.value })}
-                    className="w-full px-3 py-2 border border-yellow-400 rounded-md"
-                    placeholder="Address"
-                  />
-                  <input
-                    type="text"
-                    value={editedAddress.city}
-                    onChange={(e) => setEditedAddress({ ...editedAddress, city: e.target.value })}
-                    className="w-full px-3 py-2 border border-yellow-400 rounded-md"
-                    placeholder="City"
-                  />
-                  <input
-                    type="text"
-                    value={editedAddress.postalCode}
-                    onChange={(e) => setEditedAddress({ ...editedAddress, postalCode: e.target.value })}
-                    className="w-full px-3 py-2 border border-yellow-400 rounded-md"
-                    placeholder="Postal Code"
-                  />
-                  <input
-                    type="text"
-                    value={editedAddress.country}
-                    onChange={(e) => setEditedAddress({ ...editedAddress, country: e.target.value })}
-                    className="w-full px-3 py-2 border border-yellow-400 rounded-md"
-                    placeholder="Country"
-                  />
-                  <button
-                    onClick={handleSaveAddress}
-                    className="w-full bg-yellow-500 text-gray-800 py-2 px-4 rounded-md hover:bg-yellow-700 transition duration-300"
-                  >
-                    Save Address
-                  </button>
-                </div>
-              ) : (
+              {userAddress ? (
                 <>
-                  <p className="text-yellow-800">{userAddress.address}</p>
-                  <p className="text-yellow-800">{userAddress.city}, {userAddress.postalCode}</p>
-                  <p className="text-yellow-800">{userAddress.country}</p>
-                  {userAddress.extraCharge > 0 && (
-                    <p className="text-yellow-600 mt-2">Extra Charge: ₹{userAddress.extraCharge}</p>
+                  <div className="flex justify-between items-center mb-2">
+                    <h3 className="text-lg font-semibold text-yellow-800">Saved Address</h3>
+                    <button
+                      onClick={handleEditAddress}
+                      className="px-3 py-1 bg-yellow-500 text-gray-800 rounded-md hover:bg-yellow-700 transition duration-300"
+                    >
+                      Edit
+                    </button>
+                  </div>
+                  {isEditingAddress ? (
+                    <div className="space-y-2">
+                      <input
+                        type="text"
+                        value={editedAddress.address}
+                        onChange={(e) => setEditedAddress({ ...editedAddress, address: e.target.value })}
+                        className="w-full px-3 py-2 border border-yellow-400 rounded-md"
+                        placeholder="Address"
+                      />
+                      <input
+                        type="text"
+                        value={editedAddress.city}
+                        onChange={(e) => setEditedAddress({ ...editedAddress, city: e.target.value })}
+                        className="w-full px-3 py-2 border border-yellow-400 rounded-md"
+                        placeholder="City"
+                      />
+                      <input
+                        type="text"
+                        value={editedAddress.postalCode}
+                        onChange={(e) => setEditedAddress({ ...editedAddress, postalCode: e.target.value })}
+                        className="w-full px-3 py-2 border border-yellow-400 rounded-md"
+                        placeholder="Postal Code"
+                      />
+                      <input
+                        type="text"
+                        value={editedAddress.country}
+                        onChange={(e) => setEditedAddress({ ...editedAddress, country: e.target.value })}
+                        className="w-full px-3 py-2 border border-yellow-400 rounded-md"
+                        placeholder="Country"
+                      />
+                      <button
+                        onClick={handleSaveAddress}
+                        className="w-full bg-yellow-500 text-gray-800 py-2 px-4 rounded-md hover:bg-yellow-700 transition duration-300"
+                      >
+                        Save Address
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <p className="text-yellow-800">{userAddress.address}</p>
+                      <p className="text-yellow-800">{userAddress.city}, {userAddress.postalCode}</p>
+                      <p className="text-yellow-800">{userAddress.country}</p>
+                      {userAddress.extraCharge > 0 && (
+                        <p className="text-yellow-600 mt-2">Extra Charge: ₹{userAddress.extraCharge}</p>
+                      )}
+                    </>
                   )}
                 </>
+              ) : (
+                <div className="text-center">
+                  <p className="text-yellow-800 mb-4">No address found.</p>
+                  <button
+                    onClick={() => setIsEditingAddress(true)}
+                    className="px-4 py-2 bg-yellow-500 text-gray-800 rounded-md hover:bg-yellow-700 transition duration-300"
+                  >
+                    Add Address
+                  </button>
+                  {isEditingAddress && (
+                    <div className="space-y-2 mt-4">
+                      <input
+                        type="text"
+                        value={editedAddress.address}
+                        onChange={(e) => setEditedAddress({ ...editedAddress, address: e.target.value })}
+                        className="w-full px-3 py-2 border border-yellow-400 rounded-md"
+                        placeholder="Address"
+                      />
+                      <input
+                        type="text"
+                        value={editedAddress.city}
+                        onChange={(e) => setEditedAddress({ ...editedAddress, city: e.target.value })}
+                        className="w-full px-3 py-2 border border-yellow-400 rounded-md"
+                        placeholder="Address line 2 "
+                      />
+                      <input
+                        type="text"
+                        value={editedAddress.postalCode}
+                        onChange={(e) => setEditedAddress({ ...editedAddress, postalCode: e.target.value })}
+                        className="w-full px-3 py-2 border border-yellow-400 rounded-md"
+                        placeholder="Postal Code"
+                      />
+
+                      <input
+                        type="text"
+                        value={editedAddress.country}
+                        onChange={(e) => setEditedAddress({ ...editedAddress, country: e.target.value })}
+                        className="w-full px-3 py-2 border border-yellow-400 rounded-md"
+                        placeholder="Phone Number"
+                      />
+                      <button
+                        onClick={handleSaveAddress}
+                        className="w-full bg-yellow-500 text-gray-800 py-2 px-4 rounded-md hover:bg-yellow-700 transition duration-300"
+                      >
+                        Save Address
+                      </button>
+                    </div>
+                  )}
+                </div>
               )}
             </motion.div>
           )}
@@ -315,7 +396,7 @@ const Profile = ({ onClose }) => {
         </AnimatePresence>
       </div>
 
-      {(loadingUpdateProfile || loadingAddress || loadingUpdateAddress) && <Loader />}
+      {(loadingUpdateProfile || loadingAddress || loadingUpdateAddress || loadingAddAddress) && <Loader />}
     </div>
   );
 };
