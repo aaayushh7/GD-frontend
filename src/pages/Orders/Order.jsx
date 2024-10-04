@@ -93,7 +93,7 @@ const Order = () => {
     try {
       await payOrder({ orderId, details: { payer: {} } }).unwrap();
       await refetch();
-      toast.success("Order marked as paid");
+      toast.success("Order marked as shipped");
     } catch (err) {
       toast.error(err?.data?.message || err.error);
     }

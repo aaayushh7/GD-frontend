@@ -13,12 +13,12 @@ const OrderList = () => {
   const { data: orders, isLoading, error, refetch } = useGetOrdersQuery({}, {
     pollingInterval: 5000, // Poll for updates every 5 seconds
   });
-  
+
   const [sortedOrders, setSortedOrders] = useState([]);
   const [playSound, setPlaySound] = useState(false);
   const [continuousSound, setContinuousSound] = useState(false);
   const audioRef = useRef(null);
-  
+
   const [deliverOrder, { isLoading: loadingDeliver }] = useDeliverOrderMutation();
   const [payOrder, { isLoading: loadingPay }] = usePayOrderMutation();
 
@@ -77,7 +77,7 @@ const OrderList = () => {
     try {
       await payOrder({ orderId, details: { payer: {} } });
       refetch();
-      toast.success("Order marked as paid");
+      toast.success("Order marked as Shipped");
     } catch (err) {
       toast.error(err?.data?.message || err.error);
     }
@@ -89,8 +89,8 @@ const OrderList = () => {
       <h1 className="text-3xl font-bold mb-6 text-amber-800">Orders</h1>
       <audio ref={audioRef} src={NotificationSound} loop={continuousSound} />
       {continuousSound && (
-        <button 
-          onClick={stopSound} 
+        <button
+          onClick={stopSound}
           className="mb-4 bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
         >
           Stop Sound
@@ -145,7 +145,7 @@ const OrderList = () => {
                       </button>
                     </Link>
                     {!order.isDelivered && (
-                      <button 
+                      <button
                         onClick={() => markAsDelivered(order._id)}
                         className="flex-1 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
                         disabled={loadingDeliver}
@@ -154,12 +154,12 @@ const OrderList = () => {
                       </button>
                     )}
                     {!order.isPaid && (
-                      <button 
+                      <button
                         onClick={() => markAsPaid(order._id)}
                         className="flex-1 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
                         disabled={loadingPay}
                       >
-                        {loadingPay ? "Loading..." : "Mark Paid"}
+                        {loadingPay ? "Loading..." : "Mark Shipped"}
                       </button>
                     )}
                   </div>
