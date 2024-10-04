@@ -56,7 +56,7 @@ const PlaceOrder = () => {
         code: couponCode,
         userId: userInfo._id
       }).unwrap();
-      
+
       if (result.valid) {
         const newDiscount = Number(result.discount);
         setCouponDiscount(newDiscount);
@@ -87,11 +87,11 @@ const PlaceOrder = () => {
         couponDiscount: couponDiscount,
         couponCode: couponCode
       }).unwrap();
-  
+
       if (!res || !res._id) {
         throw new Error('Order creation failed, no order ID returned.');
       }
-  
+
       const createCashfreeOrder = await cashfreeOrder({
         orderId: res._id,
         paymentDetails: {
@@ -106,7 +106,7 @@ const PlaceOrder = () => {
 
       if (createCashfreeOrder && createCashfreeOrder.returnUrl) {
         dispatch(clearCartItems());
-        
+
         const redirectUrl = `${createCashfreeOrder.returnUrl}?paymentSessionId=${createCashfreeOrder.paymentSessionId}&cfOrder=${createCashfreeOrder.cforder}`;
         window.location.href = redirectUrl;
       } else {
@@ -166,8 +166,8 @@ const PlaceOrder = () => {
                       <FaTruck className="mr-2 text-yellow-500" /> Shipping
                     </h2>
                     <p className="mt-3 text-black">
-                      <strong>Address:</strong> 
-                      <span className="text-gray-600"> {cart.shippingAddress.address}, {cart.shippingAddress.postalCode}, {cart.shippingAddress.city}, {cart.shippingAddress.country}</span>
+                      <strong>Address:</strong>
+                      <span className="text-gray-600"> {cart.shippingAddress.address}, {cart.shippingAddress.city}, {cart.shippingAddress.postalCode}, {cart.shippingAddress.country}</span>
                     </p>
                   </div>
 
@@ -176,7 +176,7 @@ const PlaceOrder = () => {
                       <FaMoneyBillWave className="mr-2 text-yellow-500" /> Payment Method
                     </h2>
                     <p className="mt-3 text-black">
-                      <strong>Method:</strong> 
+                      <strong>Method:</strong>
                       <span className="text-gray-600"> {cart.paymentMethod}</span>
                     </p>
                   </div>
@@ -248,8 +248,8 @@ const PlaceOrder = () => {
 
               <button
                 type="button"
-                className={`mt-8 py-3 px-6 rounded-lg w-full flex items-center justify-center 
-                  ${cart.cartItems.length === 0 || isProcessing ? "bg-gray-400 cursor-not-allowed" : "bg-yellow-500 hover:bg-yellow-600 transition duration-300"} 
+                className={`mt-8 py-3 px-6 rounded-lg w-full flex items-center justify-center
+                  ${cart.cartItems.length === 0 || isProcessing ? "bg-gray-400 cursor-not-allowed" : "bg-yellow-500 hover:bg-yellow-600 transition duration-300"}
                   text-white shadow-lg`}
                 disabled={cart.cartItems.length === 0 || isProcessing}
                 onClick={placeOrderHandler}

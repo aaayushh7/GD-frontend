@@ -178,9 +178,9 @@ const Navigation = () => {
       {!userInfo?.isAdmin && (
         <div
         ref={expandedAreaRef}
-        className={`fixed inset-x-0 bottom-0 overflow-y-auto transition-all duration-500 ease-in-out
+        className={`fixed inset-x-0 bottom-14 overflow-y-auto transition-all duration-500 ease-in-out
                     backdrop-blur-lg bg-[#f8f0e0c9]
-                    ${isProfileExpanded ? 'h-[calc(100vh-2rem)] opacity-100' : 'h-0 opacity-0'}`}
+                    ${isProfileExpanded ? 'h-[calc(100vh-9rem)] opacity-100' : 'h-0 opacity-0'}`}
         style={{
           boxShadow: isProfileExpanded ? '0 -4px 6px -1px rgba(0, 0, 0, 0.1), 0 -2px 4px -1px rgba(0, 0, 0, 0.06)' : 'none',
           borderTopLeftRadius: '1.5rem',
@@ -225,7 +225,7 @@ const Navigation = () => {
         <button
           ref={profileButtonRef}
           onClick={toggleProfileExpanded}
-          className={`flex flex-col items-center justify-center px-4 py-2 text-gray-800 hover:text-yellow-700 transition-colors overflow-scroll duration-300 ${
+          className={`flex flex-col items-center justify-center px-4 py-2 text-gray-800 hover:text-yellow-700 transition-colors duration-300 ${
             activeItem === "/profile" ? 'text-yellow-700' : ''
           }`}
         >

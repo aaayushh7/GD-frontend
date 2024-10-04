@@ -5,8 +5,12 @@ import {
   saveShippingAddress,
   savePaymentMethod,
 } from "../../redux/features/cart/cartSlice";
+import {
+  useSaveAddressMutation,
+  useGetUserAddressQuery,
+} from "../../redux/api/addressApiSlice";
 import ProgressSteps from "../../components/ProgressSteps";
-import { FaMapMarkerAlt, FaPhone, FaMailBulk, FaGlobe, FaArrowRight } from "react-icons/fa";
+import { FaMapMarkerAlt, FaPhone, FaMailBulk, FaGlobe, FaArrowRight, FaSave } from "react-icons/fa";
 
 const validatePincode = (pincode) => {
   const num = parseInt(pincode, 10);
@@ -25,7 +29,6 @@ const calculateExtraCharge = (pincode) => {
   return 0;
 };
 
-
 const Shipping = () => {
   const cart = useSelector((state) => state.cart);
   const { shippingAddress } = cart;
@@ -39,13 +42,52 @@ const Shipping = () => {
   const [extraCharge, setExtraCharge] = useState(0);
   const [sliderPosition, setSliderPosition] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+  const [showSaveAddressButton, setShowSaveAddressButton] = useState(false);
+  const [showSwipeToOrder, setShowSwipeToOrder] = useState(false);
+  const [isCheckingAddress, setIsCheckingAddress] = useState(true);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const sliderRef = useRef(null);
   const ballRef = useRef(null);
 
-  const submitHandler = (e) => {
+  const [saveAddress, { isLoading: isSavingAddress }] = useSaveAddressMutation();
+  const { data: userAddress, isLoading: isLoadingAddress } = useGetUserAddressQuery();
+
+  useEffect(() => {
+    const checkSavedAddress = async () => {
+      setIsCheckingAddress(true);
+      if (userAddress) {
+        console.log("User's saved address:", userAddress);
+        dispatch(saveShippingAddress({
+          address: userAddress.address || "",
+          city: userAddress.city || "",
+          postalCode: userAddress.postalCode || "",
+          country: userAddress.country || "",
+          extraCharge: userAddress.extraCharge || 0
+        }));
+        dispatch(savePaymentMethod("Pay on delivery")); // Default payment method
+        setIsCheckingAddress(false);
+        navigate("/placeorder");
+      } else {
+        setIsCheckingAddress(false);
+        setAddress(userAddress?.address || "");
+        setCity(userAddress?.city || "");
+        setPostalCode(userAddress?.postalCode || "");
+        setCountry(userAddress?.country || "");
+        setExtraCharge(userAddress?.extraCharge || 0);
+      }
+    };
+
+    checkSavedAddress();
+  }, [userAddress, dispatch, navigate]);
+
+  useEffect(() => {
+    setShowSaveAddressButton(address && city && postalCode && country);
+    setShowSwipeToOrder(showSaveAddressButton && paymentMethod);
+  }, [address, city, postalCode, country, paymentMethod]);
+
+  const submitHandler = async (e) => {
     e.preventDefault();
     if (!paymentMethod) {
       alert("Please select a payment method");
@@ -54,6 +96,16 @@ const Shipping = () => {
     dispatch(saveShippingAddress({ address, city, postalCode, country, extraCharge }));
     dispatch(savePaymentMethod(paymentMethod));
     navigate("/placeorder");
+  };
+
+  const handleSaveAddress = async () => {
+    try {
+      await saveAddress({ address, city, postalCode, country, extraCharge }).unwrap();
+      alert("Address saved successfully!");
+    } catch (err) {
+      console.error("Failed to save address:", err);
+      alert("Failed to save address. Please try again.");
+    }
   };
 
   const handlePostalCodeChange = (e) => {
@@ -83,7 +135,7 @@ const Shipping = () => {
     const maxX = rect.width;
     let newX = clientX - rect.left - ballWidth / 2;
     newX = Math.max(0, Math.min(newX, maxX));
-    
+
     const percentage = (newX / maxX) * 100;
     setSliderPosition(percentage);
   };
@@ -126,12 +178,17 @@ const Shipping = () => {
     handleMove(e.clientX);
   };
 
-  useEffect(() => {
-    if (!shippingAddress.address) {
-      navigate("/shipping");
-    }
-  }, [navigate, shippingAddress]);
-  
+  if (isCheckingAddress) {
+    return (
+      <div className="flex justify-center items-center h-screen bg-amber-50">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-amber-500"></div>
+          <p className="mt-4 text-amber-800 font-semibold">Checking for saved address...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-amber-50 min-h-screen py-12">
       <div className="container mx-auto px-4">
@@ -142,7 +199,7 @@ const Shipping = () => {
             <div className="mb-6">
               <label className="block text-gray-700 text-sm font-bold mb-2 flex items-center">
                 <FaMapMarkerAlt className="mr-2 text-amber-500" />
-                Address
+                Address Line 1 :
               </label>
               <input
                 type="text"
@@ -156,7 +213,7 @@ const Shipping = () => {
             <div className="mb-6">
               <label className="block text-gray-700 text-sm font-bold mb-2 flex items-center">
                 <FaPhone className="mr-2 text-amber-500" />
-                Phone No.
+                Address Line 2:
               </label>
               <input
                 type="tel"
@@ -190,7 +247,7 @@ const Shipping = () => {
             <div className="mb-6">
               <label className="block text-gray-700 text-sm font-bold mb-2 flex items-center">
                 <FaGlobe className="mr-2 text-amber-500" />
-                Country
+                Contact No.
               </label>
               <input
                 type="text"
@@ -201,6 +258,19 @@ const Shipping = () => {
                 onChange={(e) => setCountry(e.target.value)}
               />
             </div>
+            {showSaveAddressButton && (
+              <div className="mb-6">
+                <button
+                  type="button"
+                  onClick={handleSaveAddress}
+                  disabled={isSavingAddress}
+                  className="w-full bg-amber-500 text-white py-2 px-4 rounded-md hover:bg-amber-600 transition-colors flex items-center justify-center"
+                >
+                  <FaSave className="mr-2" />
+                  {isSavingAddress ? "Saving..." : "Save Address"}
+                </button>
+              </div>
+            )}
             <div className="mb-6">
               <label className="block text-gray-700 text-sm font-bold mb-2">Payment Method</label>
               <div className="flex space-x-4">
@@ -229,32 +299,34 @@ const Shipping = () => {
               </div>
             </div>
 
-            <div className="mt-8">
-              <div
-                ref={sliderRef}
-                className="relative h-16 bg-yellow-200 rounded-full overflow-hidden cursor-pointer select-none touch-none"
-                onMouseDown={handleMouseDown}
-                onMouseMove={handleMouseMove}
-                onMouseUp={handleEnd}
-                onMouseLeave={handleEnd}
-                onTouchStart={handleTouchStart}
-                onTouchMove={handleTouchMove}
-                onTouchEnd={handleEnd}
-              >
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <span className="text-yellow-600 font-medium">
-                    Swipe to Place Order {extraCharge > 0 && `(+₹${extraCharge})`}
-                  </span>
-                </div>
+            {showSwipeToOrder && (
+              <div className="mt-8">
                 <div
-                  ref={ballRef}
-                  className="absolute top-1 left-1 w-14 h-14 bg-yellow-400 rounded-full flex items-center justify-center shadow-md transition-transform duration-100 ease-out"
-                  style={{ transform: `translateX(${sliderPosition}%)` }}
+                  ref={sliderRef}
+                  className="relative h-16 bg-yellow-200 rounded-full overflow-hidden cursor-pointer select-none touch-none"
+                  onMouseDown={handleMouseDown}
+                  onMouseMove={handleMouseMove}
+                  onMouseUp={handleEnd}
+                  onMouseLeave={handleEnd}
+                  onTouchStart={handleTouchStart}
+                  onTouchMove={handleTouchMove}
+                  onTouchEnd={handleEnd}
                 >
-                  <FaArrowRight className="text-white text-xl" />
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <span className="text-yellow-600 font-medium">
+                      Swipe to Place Order {extraCharge > 0 && `(+₹${extraCharge})`}
+                    </span>
+                  </div>
+                  <div
+                    ref={ballRef}
+                    className="absolute top-1 left-1 w-14 h-14 bg-yellow-400 rounded-full flex items-center justify-center shadow-md transition-transform duration-100 ease-out"
+                    style={{ transform: `translateX(${sliderPosition}%)` }}
+                  >
+                    <FaArrowRight className="text-white text-xl" />
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </form>
         </div>
       </div>
