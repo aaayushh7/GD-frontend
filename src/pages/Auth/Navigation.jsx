@@ -102,9 +102,9 @@ const Navigation = () => {
 
   const navItems = [
     { to: "/", icon: HomeIcon, label: "Home" },
-    { 
-      to: `https://wa.me/916306500300`, 
-      icon: HelpIcon, 
+    {
+      to: `https://wa.me/916306500300`,
+      icon: HelpIcon,
       label: "Help",
       onClick: (e) => {
         e.preventDefault();
@@ -176,9 +176,9 @@ const Navigation = () => {
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50">
       {!userInfo?.isAdmin && (
-        <div 
+        <div
         ref={expandedAreaRef}
-        className={`fixed inset-x-0 bottom-0 overflow-y-auto transition-all duration-500 ease-in-out 
+        className={`fixed inset-x-0 bottom-0 overflow-y-auto transition-all duration-500 ease-in-out
                     backdrop-blur-lg bg-[#f8f0e0c9]
                     ${isProfileExpanded ? 'h-[calc(100vh-2rem)] opacity-100' : 'h-0 opacity-0'}`}
         style={{
@@ -202,7 +202,7 @@ const Navigation = () => {
         </div>
       )}
       {userInfo?.isAdmin && (
-        <div 
+        <div
           ref={dropdownRef}
           className={`bg-white rounded-t-3xl shadow-lg transition-all pb-9 mb-9 duration-300 ease-in-out overflow-hidden ${
             dropdownOpen ? 'max-h-[calc(100vh-5rem)]' : 'max-h-0'
@@ -225,7 +225,7 @@ const Navigation = () => {
         <button
           ref={profileButtonRef}
           onClick={toggleProfileExpanded}
-          className={`flex flex-col items-center justify-center px-4 py-2 text-gray-800 hover:text-yellow-700 transition-colors duration-300 ${
+          className={`flex flex-col items-center justify-center px-4 py-2 text-gray-800 hover:text-yellow-700 transition-colors overflow-scroll duration-300 ${
             activeItem === "/profile" ? 'text-yellow-700' : ''
           }`}
         >
