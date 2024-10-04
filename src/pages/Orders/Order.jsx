@@ -10,7 +10,7 @@ import {
   usePayOrderMutation,
 } from "../../redux/api/orderApiSlice";
 import { load } from "@cashfreepayments/cashfree-js";
-import { FaShoppingBag, FaTruck, FaMoneyBillWave, FaInfoCircle, FaBox, FaMapMarkerAlt, FaCity, FaGlobeAmericas, FaCreditCard, FaCheckCircle, FaChevronUp, FaChevronDown } from "react-icons/fa";
+import { FaShoppingBag, FaTruck, FaMoneyBillWave, FaInfoCircle, FaBox, FaMapMarkerAlt, FaCity, FaGlobeAmericas, FaCreditCard, FaCheckCircle, FaChevronUp, FaChevronDown, FaTimesCircle, FaSpinner } from "react-icons/fa";
 
 const SkeletonLoader = ({ width = "w-full", height = "h-4" }) => (
   <div className={`${width} ${height} bg-gray-200 rounded animate-pulse`}></div>
@@ -31,6 +31,39 @@ const OrderItemSkeleton = () => (
     </div>
   </div>
 );
+
+const PaymentStatus = ({ isPaid, paidAt, isLoading }) => {
+  if (isLoading) {
+    return (
+      <div className="mb-4 bg-gray-100 p-4 rounded-lg shadow-sm animate-pulse">
+        <h3 className="font-semibold text-amber-700 mb-2">Shipping Status</h3>
+        <div className="flex items-center space-x-2 text-gray-500">
+          <FaSpinner className="animate-spin" />
+          <span>Loading status...</span>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mb-4 bg-gradient-to-r from-amber-50 to-amber-100 p-4 rounded-lg shadow-md transition-all duration-300 hover:shadow-lg">
+      <h3 className="font-semibold text-amber-700 mb-2">Shipping Status</h3>
+      {isPaid ? (
+        <div className="flex items-center space-x-2 text-green-600">
+          <FaCheckCircle className="text-xl" />
+          <span className="font-medium">
+            Shipped on {new Date(paidAt).toLocaleString()}
+          </span>
+        </div>
+      ) : (
+        <div className="flex items-center space-x-2 text-red-500">
+          <FaTimesCircle className="text-xl" />
+          <span className="font-medium">Not Yet Shipped</span>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const Order = () => {
   const { id: orderId } = useParams();
@@ -164,6 +197,33 @@ const Order = () => {
           )}
         </div>
 
+        <div className="bg-white rounded-lg shadow-md p-4 mb-6 border border-gray-300">
+          <h2 className="text-xl font-semibold text-amber-800 mb-4 pb-2 border-b border-gray-300 flex items-center">
+            <FaInfoCircle className="mr-2 text-amber-500" /> Order Information
+          </h2>
+          {isLoading ? (
+            <div className="space-y-2">
+              <SkeletonLoader />
+              <SkeletonLoader />
+              <SkeletonLoader />
+            </div>
+          ) : (
+            <>
+              <div className="mb-4">
+                <h3 className="font-semibold text-amber-700">Shipping Address</h3>
+                <p className="text-gray-700">
+                  {order.shippingAddress.address}, {order.shippingAddress.postalCode}, {order.shippingAddress.country}, {order.shippingAddress.city}
+                </p>
+              </div>
+              <PaymentStatus
+                isPaid={order.isPaid}
+                paidAt={order.paidAt}
+                isLoading={isLoading}
+              />
+            </>
+          )}
+        </div>
+
         <div className="bg-white rounded-lg shadow-md p-4 mt-6 border border-gray-300">
           <h2 className="text-xl font-semibold text-amber-800 mb-4 pb-2 border-b border-gray-300 flex items-center">
             <FaShoppingBag className="mr-2 text-amber-500" /> Order Summary
@@ -231,8 +291,6 @@ const Order = () => {
             </button>
           )}
         </div>
-
-
       </div>
     </div>
   );
