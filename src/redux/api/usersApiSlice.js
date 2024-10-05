@@ -17,6 +17,14 @@ export const userApiSlice = apiSlice.injectEndpoints({
         body: data,
       }),
     }),
+    googleSignUp: builder.mutation({
+      query: (token) => ({
+        url: `${USERS_URL}/googleSignUp`,
+        method: "POST",
+        body: { token },  // <-- Send the token directly
+      }),
+    }),
+
     logout: builder.mutation({
       query: () => ({
         url: `${USERS_URL}/logout`,
@@ -64,6 +72,7 @@ export const {
   useLoginMutation,
   useLogoutMutation,
   useRegisterMutation,
+  useGoogleSignUpMutation,
   useProfileMutation,
   useGetUsersQuery,
   useDeleteUserMutation,

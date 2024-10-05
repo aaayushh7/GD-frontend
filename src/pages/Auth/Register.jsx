@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { useRegisterMutation } from "../../redux/api/usersApiSlice";
+import { useRegisterMutation, useGoogleSignUpMutation } from "../../redux/api/usersApiSlice";
 import { setCredentials } from "../../redux/features/auth/authSlice";
 import { toast } from "react-toastify";
 import { motion } from "framer-motion";
 import { PizzaIcon, LockIcon, MailIcon, UserIcon } from "lucide-react";
+import { useGoogleLogin } from '@react-oauth/google';
 
 const Register = () => {
   const [username, setName] = useState("");
@@ -17,6 +18,7 @@ const Register = () => {
   const navigate = useNavigate();
 
   const [register, { isLoading }] = useRegisterMutation();
+  const [googleSignUp, { isLoading: isGoogleSignUpLoading }] = useGoogleSignUpMutation();
 
   const { userInfo } = useSelector((state) => state.auth);
 
@@ -47,6 +49,22 @@ const Register = () => {
       }
     }
   };
+
+  const handleGoogleSignUp = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      try {
+        const res = await googleSignUp({ token: tokenResponse.id_token }).unwrap(); // Use id_token
+        dispatch(setCredentials({ ...res }));
+        navigate(redirect);
+        toast.success("User successfully registered with Google");
+      } catch (err) {
+        toast.error(err?.data?.message || "An error occurred during Google Sign Up");
+      }
+    },
+    onError: (error) => {
+      toast.error("Google Sign Up failed");
+    },
+  });
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-yellow-300 to-yellow-500 p-4">
@@ -146,6 +164,17 @@ const Register = () => {
             )}
           </button>
         </form>
+
+        <div className="mt-4">
+          <button
+            onClick={handleGoogleSignUp}
+            disabled={isGoogleSignUpLoading}
+            className="w-full bg-white text-gray-700 font-bold py-3 px-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-opacity-50 flex items-center justify-center"
+          >
+            <img src="/google-icon.png" alt="Google" className="w-5 h-5 mr-2" />
+            {isGoogleSignUpLoading ? "Loading..." : "Sign up with Google"}
+          </button>
+        </div>
 
         <div className="mt-6 text-center">
           <p className="text-gray-600">
