@@ -53,15 +53,38 @@ const Register = () => {
   const handleGoogleSignUp = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       try {
-        const res = await googleSignUp({ token: tokenResponse.id_token }).unwrap(); // Use id_token
+        const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+          headers: {
+            Authorization: `Bearer ${tokenResponse.access_token}`,
+          },
+        });
+
+        if (!userInfoResponse.ok) {
+          throw new Error('Failed to fetch user info from Google');
+        }
+
+        const userInfo = await userInfoResponse.json();
+
+        console.log("Google User Info:", userInfo); // Debugging log
+
+        const res = await googleSignUp({
+          googleId: userInfo.sub,
+          email: userInfo.email,
+          name: userInfo.name
+        }).unwrap();
+
+        console.log("Google Sign Up Response:", res); // Debugging log
+
         dispatch(setCredentials({ ...res }));
         navigate(redirect);
         toast.success("User successfully registered with Google");
       } catch (err) {
+        console.error('Google Sign Up Error:', err);
         toast.error(err?.data?.message || "An error occurred during Google Sign Up");
       }
     },
     onError: (error) => {
+      console.error('Google Sign Up Error:', error);
       toast.error("Google Sign Up failed");
     },
   });
