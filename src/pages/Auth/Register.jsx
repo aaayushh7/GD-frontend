@@ -7,6 +7,7 @@ import { toast } from "react-toastify";
 import { motion } from "framer-motion";
 import { PizzaIcon, LockIcon, MailIcon, UserIcon } from "lucide-react";
 import { useGoogleLogin } from '@react-oauth/google';
+import  GoogleIcon from "../../assets/googleLogo"
 
 const Register = () => {
   const [username, setName] = useState("");
@@ -192,9 +193,10 @@ const Register = () => {
           <button
             onClick={handleGoogleSignUp}
             disabled={isGoogleSignUpLoading}
-            className="w-full bg-white text-gray-700 font-bold py-3 px-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-opacity-50 flex items-center justify-center"
+            className="w-full bg-white text-gray-700 gap-2 font-bold py-3 px-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-opacity-50 flex items-center justify-center"
           >
-            <img src="/google-icon.png" alt="Google" className="w-5 h-5 mr-2" />
+            {/* <img src={GoogleIcon} alt="Google" className="w-5 h-5 mr-2" /> */}
+            <GoogleIcon/>
             {isGoogleSignUpLoading ? "Loading..." : "Sign up with Google"}
           </button>
         </div>
