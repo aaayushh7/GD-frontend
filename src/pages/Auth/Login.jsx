@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { useLoginMutation } from "../../redux/api/usersApiSlice";
+import { useLoginMutation, useGoogleSignUpMutation } from "../../redux/api/usersApiSlice";
 import { setCredentials } from "../../redux/features/auth/authSlice";
 import { toast } from "react-toastify";
 import { motion } from "framer-motion";
 import { PizzaIcon, LockIcon, MailIcon } from "lucide-react";
+import { useGoogleLogin } from '@react-oauth/google';
+import  GoogleIcon from "../../assets/googleLogo"
+
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -19,6 +22,8 @@ const Login = () => {
   const [login] = useLoginMutation();
 
   const { userInfo } = useSelector((state) => state.auth);
+  const [googleSignUp, { isLoading: isGoogleSignUpLoading }] = useGoogleSignUpMutation();
+
 
   const { search } = useLocation();
   const sp = new URLSearchParams(search);
@@ -64,6 +69,44 @@ const Login = () => {
       setIsSubmitting(false);
     }
   };
+  const handleGoogleSignUp = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      try {
+        const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+          headers: {
+            Authorization: `Bearer ${tokenResponse.access_token}`,
+          },
+        });
+
+        if (!userInfoResponse.ok) {
+          throw new Error('Failed to fetch user info from Google');
+        }
+
+        const userInfo = await userInfoResponse.json();
+
+        console.log("Google User Info:", userInfo); // Debugging log
+
+        const res = await googleSignUp({
+          googleId: userInfo.sub,
+          email: userInfo.email,
+          name: userInfo.name
+        }).unwrap();
+
+        console.log("Google Sign Up Response:", res); // Debugging log
+
+        dispatch(setCredentials({ ...res }));
+        navigate(redirect);
+        toast.success("User successfully registered with Google");
+      } catch (err) {
+        console.error('Google Sign Up Error:', err);
+        toast.error(err?.data?.message || "An error occurred during Google Sign Up");
+      }
+    },
+    onError: (error) => {
+      console.error('Google Sign Up Error:', error);
+      toast.error("Google Sign Up failed");
+    },
+  });
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-yellow-300 to-yellow-500 p-4">
@@ -135,6 +178,17 @@ const Login = () => {
             )}
           </button>
         </form>
+        <div className="mt-4">
+          <button
+            onClick={handleGoogleSignUp}
+            disabled={isGoogleSignUpLoading}
+            className="w-full bg-white text-gray-700 gap-2 font-bold py-3 px-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-opacity-50 flex items-center justify-center"
+          >
+            {/* <img src={GoogleIcon} alt="Google" className="w-5 h-5 mr-2" /> */}
+            <GoogleIcon/>
+            {isGoogleSignUpLoading ? "Loading..." : "Sign in with Google"}
+          </button>
+        </div>
 
         <div className="mt-6 text-center">
           <p className="text-gray-600">
