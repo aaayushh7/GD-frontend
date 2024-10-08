@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useProfileMutation } from '../../redux/api/usersApiSlice';
 import { useGetUserAddressQuery,
@@ -28,6 +29,8 @@ const Profile = ({ onClose }) => {
 
   const dispatch = useDispatch();
   const { userInfo } = useSelector((state) => state.auth);
+  const navigate = useNavigate();
+
 
   const [updateProfile, { isLoading: loadingUpdateProfile }] = useProfileMutation();
   const { data: userAddress, isLoading: loadingAddress, refetch: refetchAddress } = useGetUserAddressQuery();
@@ -106,6 +109,10 @@ const Profile = ({ onClose }) => {
       }
     }
     setShowAddress(!showAddress);
+  };
+
+  const handleNavigateToUserOrder = () => {
+    navigate('/user-order');
   };
 
   const faqItems = [
@@ -366,6 +373,15 @@ const Profile = ({ onClose }) => {
             </motion.div>
           )}
         </AnimatePresence>
+      </div>
+      <div className="mt-6">
+        <button
+          type="button"
+          onClick={handleNavigateToUserOrder}
+          className="w-full bg-yellow-500 text-gray-800 py-3 px-4 rounded-md hover:bg-yellow-700 transition duration-300 shadow-md"
+        >
+          My Orders
+        </button>
       </div>
 
       <div className="mt-6">

@@ -18,7 +18,7 @@ import UserIcon from "../../assets/user";
 import HeartIcon from "../../assets/heart";
 import HomeIcon from "../../assets/home";
 import HelpIcon from "../../assets/help";
-import Profile from "../../pages/User/Profile"; // Import the new Profile component
+import Profile from "../../pages/User/Profile";
 
 const Navigation = () => {
   const { userInfo } = useSelector((state) => state.auth);
@@ -77,29 +77,6 @@ const Navigation = () => {
     };
   }, []);
 
-  useEffect(() => {
-    let startY;
-    const handleTouchStart = (e) => {
-      startY = e.touches[0].clientY;
-    };
-    const handleTouchMove = (e) => {
-      const currentY = e.touches[0].clientY;
-      if (currentY - startY > 50) {
-        setIsProfileExpanded(false);
-      }
-    };
-    if (isProfileExpanded && expandedAreaRef.current) {
-      expandedAreaRef.current.addEventListener('touchstart', handleTouchStart);
-      expandedAreaRef.current.addEventListener('touchmove', handleTouchMove);
-    }
-    return () => {
-      if (expandedAreaRef.current) {
-        expandedAreaRef.current.removeEventListener('touchstart', handleTouchStart);
-        expandedAreaRef.current.removeEventListener('touchmove', handleTouchMove);
-      }
-    };
-  }, [isProfileExpanded]);
-
   const navItems = [
     { to: "/", icon: HomeIcon, label: "Home" },
     {
@@ -120,7 +97,7 @@ const Navigation = () => {
         { to: "/admin/productlist", icon: AiOutlineInbox, label: "Products" },
         { to: "/admin/categorylist", icon: AiOutlineUnorderedList, label: "Categories" },
         { to: "/admin/subcategorylist", icon: AiOutlineUnorderedList, label: "Subcategories" },
-        { to: "/admin/couponlist", icon: AiOutlineTag, label: "Coupons" }, // Add this line
+        { to: "/admin/couponlist", icon: AiOutlineTag, label: "Coupons" },
         { to: "/admin/orderlist", icon: AiOutlineShop, label: "Orders" },
         { to: "/admin/userlist", icon: AiOutlineTeam, label: "Users" },
         { onClick: logoutHandler, icon: AiOutlineLogout, label: "Logout" },
@@ -187,7 +164,7 @@ const Navigation = () => {
           borderTopRightRadius: '1.5rem',
         }}
       >
-          <div className="w-16 h-1 bg-gray-900 mx-auto mt-3 rounded-full"></div>
+          <div className="w-16 h-1 bg-gray-900  mx-auto mt-3 rounded-full"></div>
           <div className={`${isProfileExpanded ? 'translate-y-0' : 'translate-y-full'} transition-transform duration-500 ease-in-out`}>
             <Profile onClose={() => setIsProfileExpanded(false)} />
             <div className="mt-6 pt-6 border-t border-gray-200 px-6 pb-6">
