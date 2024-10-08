@@ -45,7 +45,7 @@ const OrderItem = React.memo(({ order }) => (
         </div>
         <div className="flex flex-col items-end">
           <span className={`px-2 py-1 rounded-full text-xs font-bold ${order.isPaid ? 'bg-green-400 text-green-800' : 'bg-red-400 text-red-800'}`}>
-            {order.isPaid ? 'Paid' : 'Pending'}
+            {order.isPaid ? 'Shipped' : 'Pending'}
           </span>
           <span className={`mt-1 px-2 py-1 rounded-full text-xs font-bold ${order.isDelivered ? 'bg-green-400 text-green-800' : 'bg-red-400 text-red-800'}`}>
             {order.isDelivered ? 'Delivered' : 'Pending'}
