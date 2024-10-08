@@ -12,11 +12,11 @@ import PrivateRoute from "./components/PrivateRoute";
 // Auth
 import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
+import UserOrder from "./pages/User/UserOrder.jsx";
 
 import AdminRoute from "./pages/Admin/AdminRoute";
 import Profile from "./pages/User/Profile";
 import UserList from "./pages/Admin/UserList";
-import UserOrder from "./pages/User/UserOrder.jsx";
 
 import CategoryList from "./pages/Admin/CategoryList";
 import SubcategoryList from "./pages/Admin/SubcategoryList";
@@ -54,9 +54,10 @@ const router = createBrowserRouter(
       <Route path="" element={<PrivateRoute />}>
         <Route path="/profile" element={<Profile />} />
         <Route path="/shipping" element={<Shipping />} />
-        <Route path="/user-order" element={<UserOrder />}>
         <Route path="/placeorder" element={<PlaceOrder />} />
         <Route path="/order/:id" element={<Order />} />
+        <Route path="/user-order" element={<UserOrder />}>
+      </Route>
       </Route>
 
       <Route path="/admin" element={<AdminRoute />}>
