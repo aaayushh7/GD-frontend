@@ -41,7 +41,7 @@ const OrderItem = React.memo(({ order }) => (
       <div className="flex justify-between items-center mt-4">
         <div>
           <p className="text-gray-600">Date: {new Date(order.createdAt).toLocaleDateString()}</p>
-          <p className="font-bold text-xl text-yellow-500">${order.totalPrice.toFixed(2)}</p>
+          <p className="font-bold text-xl text-yellow-500">Rs {order.totalPrice.toFixed(2)}</p>
         </div>
         <div className="flex flex-col items-end">
           <span className={`px-2 py-1 rounded-full text-xs font-bold ${order.isPaid ? 'bg-green-400 text-green-800' : 'bg-red-400 text-red-800'}`}>
