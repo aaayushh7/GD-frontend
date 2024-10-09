@@ -132,7 +132,7 @@ const OrderList = () => {
                   <p className="text-2xl font-bold mb-4 text-amber-800">₹ {order.totalPrice}</p>
                   <div className="flex justify-between mb-4">
                     <span className={`px-3 py-1 rounded-full ${order.isPaid ? "bg-green-500" : "bg-red-500"} text-white`}>
-                      {order.isPaid ? "Paid" : "Unpaid"}
+                      {order.isPaid ? "Shipped" : "Not Shipped"}
                     </span>
                     <span className={`px-3 py-1 rounded-full ${order.isDelivered ? "bg-green-500" : "bg-red-500"} text-white`}>
                       {order.isDelivered ? "Delivered" : "Undelivered"}
