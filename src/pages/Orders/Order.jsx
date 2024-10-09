@@ -1,16 +1,19 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useLocation, Link, useParams } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { toast } from "react-toastify";
 import Message from "../../components/Message";
 import Loader from "../../components/Loader";
+import PaymentMethodInfo from "../../components/PaymentMethod";
+import PostPaymentNote from "../../components/PostPaymentNote";
 import {
   useDeliverOrderMutation,
   useGetOrderDetailsQuery,
   usePayOrderMutation,
 } from "../../redux/api/orderApiSlice";
+import { savePaymentMethod } from "../../redux/features/cart/cartSlice";
 import { load } from "@cashfreepayments/cashfree-js";
-import { FaShoppingBag, FaTruck, FaMoneyBillWave, FaInfoCircle, FaBox, FaMapMarkerAlt, FaCity, FaGlobeAmericas, FaCreditCard, FaCheckCircle, FaChevronUp, FaChevronDown, FaTimesCircle, FaSpinner } from "react-icons/fa";
+import { FaShoppingBag, FaTruck, FaInfoCircle, FaBox,  FaCreditCard, FaCheckCircle, FaChevronUp, FaChevronDown, FaTimesCircle, FaSpinner } from "react-icons/fa";
 
 const SkeletonLoader = ({ width = "w-full", height = "h-4" }) => (
   <div className={`${width} ${height} bg-gray-200 rounded animate-pulse`}></div>
@@ -32,11 +35,11 @@ const OrderItemSkeleton = () => (
   </div>
 );
 
-const PaymentStatus = ({ isPaid, paidAt, isLoading }) => {
+const PaymentStatus = ({ isPaid, paidAt, isLoading, paymentMethod }) => {
   if (isLoading) {
     return (
       <div className="mb-4 bg-gray-100 p-4 rounded-lg shadow-sm animate-pulse">
-        <h3 className="font-semibold text-amber-700 mb-2">Shipping Status</h3>
+        <h3 className="font-semibold text-orange-700 mb-2">Delivery Status</h3>
         <div className="flex items-center space-x-2 text-gray-500">
           <FaSpinner className="animate-spin" />
           <span>Loading status...</span>
@@ -46,19 +49,25 @@ const PaymentStatus = ({ isPaid, paidAt, isLoading }) => {
   }
 
   return (
-    <div className="mb-4 bg-gradient-to-r from-amber-50 to-amber-100 p-4 rounded-lg shadow-md transition-all duration-300 hover:shadow-lg">
-      <h3 className="font-semibold text-amber-700 mb-2">Shipping Status</h3>
+    <div className="mb-4 bg-gradient-to-r from-orange-50 to-orange-100 p-4 rounded-lg shadow-md transition-all duration-300 hover:shadow-lg">
+      <h3 className="font-semibold text-orange-700 mb-2">Delivery Status</h3>
       {isPaid ? (
         <div className="flex items-center space-x-2 text-green-600">
           <FaCheckCircle className="text-xl" />
           <span className="font-medium">
-            Shipped on {new Date(paidAt).toLocaleString()}
+            On the way (Ordered on {new Date(paidAt).toLocaleString()})
           </span>
         </div>
       ) : (
         <div className="flex items-center space-x-2 text-red-500">
           <FaTimesCircle className="text-xl" />
-          <span className="font-medium">Not Yet Shipped</span>
+          <span className="font-medium">Not Yet Dispatched</span>
+        </div>
+      )}
+      {paymentMethod === 'Pay on Delivery' && !isPaid && (
+        <div className="mt-2 text-orange-600">
+          <FaInfoCircle className="inline-block mr-2" />
+          <span>Your order will reach you in approximately 20 minutes.</span>
         </div>
       )}
     </div>
@@ -68,14 +77,20 @@ const PaymentStatus = ({ isPaid, paidAt, isLoading }) => {
 const Order = () => {
   const { id: orderId } = useParams();
   const location = useLocation();
+  const dispatch = useDispatch();
   const params = new URLSearchParams(location.search);
   const paymentSessionId = params.get('paymentSessionId');
   const paymentCompleted = params.get('paymentCompleted');
   const [cashfree, setCashfree] = useState(null);
   const [showDetails, setShowDetails] = useState(false);
+  const [showOrderInfo, setShowOrderInfo] = useState(false);
 
   const toggleDetails = () => {
     setShowDetails(!showDetails);
+  };
+
+  const toggleOrderInfo = () => {
+    setShowOrderInfo(!showOrderInfo);
   };
 
   const {
@@ -93,7 +108,7 @@ const Order = () => {
     try {
       await payOrder({ orderId, details: { payer: {} } }).unwrap();
       await refetch();
-      toast.success("Order marked as shipped");
+      toast.success("Order marked as paid");
     } catch (err) {
       toast.error(err?.data?.message || err.error);
     }
@@ -153,18 +168,31 @@ const Order = () => {
     }
   };
 
+  const handlePayment = async () => {
+    if (order.paymentMethod === 'Pay on Delivery') {
+      // Mark as paid for Pay on Delivery
+      await markAsPaid(orderId);
+      // Update payment method to PayPal
+      dispatch(savePaymentMethod('PayPal'));
+      refetch();
+    } else {
+      // For PayPal or other online methods, use existing Cashfree logic
+      handleCashfreePayment();
+    }
+  };
+
   if (error) return <Message variant="danger">{error.data.message}</Message>;
 
   return (
-    <div className="bg-amber-50 min-h-screen py-4 px-4 sm:py-6 sm:px-6 lg:px-8">
+    <div className="bg-gray-50 min-h-screen py-4 px-4 sm:py-6 sm:px-6 lg:px-8 pb-24">
       <div className="max-w-3xl mx-auto">
-        <h1 className="text-2xl font-semibold text-amber-800 mb-6 pb-2 border-b-2 border-yellow-400 flex items-center">
-          <FaBox className="mr-3 text-amber-600" /> Order Details
+        <h1 className="text-2xl font-semibold text-gray-800 mb-6 pb-2 border-b-2 border-orange-400 flex items-center">
+          <FaBox className="mr-3 text-gray-600" /> Your Order
         </h1>
 
-        <div className="bg-white rounded-lg shadow-md p-4 mb-6 border border-gray-300">
-          <h2 className="text-xl font-semibold text-amber-800 mb-4 pb-2 border-b border-gray-300 flex items-center">
-            <FaShoppingBag className="mr-2 text-amber-500" /> Items
+        <div className="bg-white rounded-lg shadow-md p-4 mb-6">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-300 flex items-center">
+            <FaShoppingBag className="mr-2 text-yellow-400" /> Items
           </h2>
           {isLoading ? (
             <div className="space-y-4">
@@ -181,7 +209,7 @@ const Order = () => {
                   <div className="flex items-center space-x-4">
                     <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded-md border border-gray-300" />
                     <div>
-                      <Link to={`/product/${item.product}`} className="text-amber-600 hover:text-amber-800 font-medium">
+                      <Link to={`/product/${item.product}`} className="text-gray-800 hover:text-orange-800 font-medium">
                         {item.name}
                       </Link>
                       <p className="text-gray-600 text-sm">Qty: {item.qty}</p>
@@ -197,36 +225,9 @@ const Order = () => {
           )}
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-4 mb-6 border border-gray-300">
-          <h2 className="text-xl font-semibold text-amber-800 mb-4 pb-2 border-b border-gray-300 flex items-center">
-            <FaInfoCircle className="mr-2 text-amber-500" /> Order Information
-          </h2>
-          {isLoading ? (
-            <div className="space-y-2">
-              <SkeletonLoader />
-              <SkeletonLoader />
-              <SkeletonLoader />
-            </div>
-          ) : (
-            <>
-              <div className="mb-4">
-                <h3 className="font-semibold text-amber-700">Shipping Address</h3>
-                <p className="text-gray-700">
-                  {order.shippingAddress.address}, {order.shippingAddress.postalCode}, {order.shippingAddress.country}, {order.shippingAddress.city}
-                </p>
-              </div>
-              <PaymentStatus
-                isPaid={order.isPaid}
-                paidAt={order.paidAt}
-                isLoading={isLoading}
-              />
-            </>
-          )}
-        </div>
-
-        <div className="bg-white rounded-lg shadow-md p-4 mt-6 border border-gray-300">
-          <h2 className="text-xl font-semibold text-amber-800 mb-4 pb-2 border-b border-gray-300 flex items-center">
-            <FaShoppingBag className="mr-2 text-amber-500" /> Order Summary
+        <div className="bg-white rounded-lg shadow-md p-4 mt-6">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-300 flex items-center">
+            <FaShoppingBag className="mr-2 text-yellow-400" /> Order Summary
           </h2>
           {isLoading ? (
             <div className="space-y-2">
@@ -237,7 +238,7 @@ const Order = () => {
             </div>
           ) : (
             <>
-              <div className="flex justify-between text-lg font-bold text-amber-600 mb-4">
+              <div className="flex justify-between text-lg font-bold text-gray-700 mb-4">
                 <span>Total:</span>
                 <span>₹ {order.totalPrice}</span>
               </div>
@@ -255,7 +256,7 @@ const Order = () => {
                     <span className="font-medium">₹ {order.itemsPrice}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Shipping:</span>
+                    <span>Delivery:</span>
                     <span className="font-medium">₹ {order.shippingPrice}</span>
                   </div>
                   <div className="flex justify-between">
@@ -266,32 +267,88 @@ const Order = () => {
               )}
             </>
           )}
-
-          {!isLoading && !order.isPaid && (
-            <button
-              type="button"
-              className="mt-4 bg-[#facc15] text-white w-full py-2 px-4 rounded-md hover:bg-amber-600 transition-colors duration-300 flex items-center justify-center"
-              onClick={handleCashfreePayment}
-              disabled={!cashfree}
-            >
-              <FaCreditCard className="mr-2" />
-              {loadingPay ? "Processing..." : "Pay with Cashfree"}
-            </button>
-          )}
-
-          {loadingDeliver && <Loader />}
-          {!isLoading && userInfo && userInfo.isAdmin && order.isPaid && !order.isDelivered && (
-            <button
-              type="button"
-              className="mt-4 bg-amber-500 text-white py-3 px-6 rounded-md w-full hover:bg-amber-600 transition-colors duration-300 flex items-center justify-center"
-              onClick={deliverHandler}
-            >
-              <FaTruck className="mr-2" />
-              Mark As Delivered
-            </button>
-          )}
         </div>
       </div>
+
+
+      {!isLoading && (
+        <div className="fixed bottom-16 left-0 right-0 bg-white rounded-lg shadow-md">
+          <div className="max-w-3xl mx-auto">
+            <div 
+              className={`transition-all duration-300 ease-in-out overflow-auto rounded-xl ${
+                showOrderInfo ? 'max-h-96' : 'max-h-0'
+              }`}
+            >
+              <div className="p-4 bg-white border shadow-xl rounded-lg">
+                <h3 className="font-semibold text-orange-700 mb-2">Delivery Address</h3>
+                <p className="text-gray-700">
+                  {order.shippingAddress.address}, {order.shippingAddress.city}, {order.shippingAddress.postalCode}, {order.shippingAddress.country}
+                </p>
+                <PaymentMethodInfo 
+  paymentMethod={order.paymentMethod}
+  isPaid={order.isPaid}
+/>
+                <PaymentStatus 
+                  isPaid={order.isPaid} 
+                  paidAt={order.paidAt} 
+                  isLoading={isLoading} 
+                  paymentMethod={order.paymentMethod}
+                />
+                {order.isPaid && <PostPaymentNote />}
+              </div>
+            </div>
+            <div className="p-4 flex items-center justify-between">
+              <div 
+                className="w-1/2 pr-2 cursor-pointer"
+                onClick={toggleOrderInfo}
+              >
+                <p className="text-sm text-gray-600">Delivery to:</p>
+                <p className="font-medium text-gray-800 truncate">
+                  {order.shippingAddress.address.slice(0, 20)}...
+                </p>
+                <div className="text-gray-500 text-[9px]">
+                  {showOrderInfo ? 'Hide Details' : 'Show Details'}
+                </div>
+              </div>
+              {!order.isPaid ? (
+  <button
+    type="button"
+    className="w-1/2 bg-yellow-400 text-gray-700 py-3 px-4 rounded-md hover:bg-orange-600 transition-colors duration-300 flex items-center justify-center"
+    onClick={handlePayment}
+    disabled={loadingPay}
+  >
+    <FaCreditCard className="mr-2" />
+    {loadingPay ? "Processing..." : "Pay Now"}
+  </button>
+) : userInfo && userInfo.isAdmin ? (
+  order.isDelivered ? (
+    <span className="w-1/2 bg-green-500 text-white py-3 px-4 rounded-md flex items-center justify-center">
+      <FaCheckCircle className="mr-2" />
+      Delivered
+    </span>
+  ) : (
+    <button
+      type="button"
+      className="w-1/2 bg-green-500 text-white py-3 px-4 rounded-md hover:bg-green-600 transition-colors duration-300 flex items-center justify-center"
+      onClick={deliverHandler}
+      disabled={loadingDeliver}
+    >
+      <FaTruck className="mr-2" />
+      {loadingDeliver ? "Processing..." : "Mark As Delivered"}
+    </button>
+  )
+) : (
+  <span className="w-1/2 bg-gray-300 text-gray-600 py-3 px-4 rounded-md flex items-center justify-center">
+    <FaCheckCircle className="mr-2" />
+    Paid
+  </span>
+)}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {loadingDeliver && <Loader />}
     </div>
   );
 };

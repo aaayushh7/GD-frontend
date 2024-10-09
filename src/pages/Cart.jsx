@@ -12,6 +12,7 @@ import {
   Divider,
   Stack,
   IconButton,
+  Paper,
 } from '@mui/material';
 import { ArrowBack, ShoppingCart, Add, Remove } from '@mui/icons-material';
 import { addToCart, removeFromCart } from "../redux/features/cart/cartSlice";
@@ -21,18 +22,18 @@ const theme = createTheme({
   typography: {
     fontFamily: "'Inter', 'Roboto', 'Helvetica', 'Arial', sans-serif",
     h5: {
-      fontSize: '1.25rem',
+      fontSize: '1.3rem',
       fontWeight: 600,
     },
     h6: {
-      fontSize: '1rem',
+      fontSize: '1.1rem',
       fontWeight: 600,
     },
     body1: {
-      fontSize: '0.875rem',
+      fontSize: '0.9rem',
     },
     body2: {
-      fontSize: '0.75rem',
+      fontSize: '0.8rem',
     },
     button: {
       textTransform: 'none',
@@ -41,15 +42,15 @@ const theme = createTheme({
   },
   palette: {
     primary: {
-      main: '#FFC107',
-      dark: '#FFA000',
+      main: '#FF5722',
+      dark: '#E64A19',
     },
     secondary: {
-      main: '#212121',
+      main: '#2196F3',
     },
     background: {
-      default: '#FFFFFF',
-      paper: '#FAFAFA',
+      default: '#F5F5F5',
+      paper: '#FFFFFF',
     },
     text: {
       primary: '#212121',
@@ -57,18 +58,18 @@ const theme = createTheme({
     },
   },
   shape: {
-    borderRadius: 8,
+    borderRadius: 12,
   },
   components: {
     MuiButton: {
       styleOverrides: {
         root: {
-          borderRadius: 20,
-          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-          transition: 'all 0.2s ease',
+          borderRadius: 25,
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+          transition: 'all 0.3s ease',
           '&:hover': {
-            transform: 'translateY(-1px)',
-            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.15)',
+            transform: 'translateY(-2px)',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
           },
         },
       },
@@ -76,9 +77,19 @@ const theme = createTheme({
     MuiCard: {
       styleOverrides: {
         root: {
-          borderRadius: 12,
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
-          border: '1px solid #E0E0E0',
+          borderRadius: 16,
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+          border: 'none',
+        },
+      },
+    },
+    MuiIconButton: {
+      styleOverrides: {
+        root: {
+          transition: 'all 0.2s ease',
+          '&:hover': {
+            backgroundColor: 'rgba(255, 87, 34, 0.1)',
+          },
         },
       },
     },
@@ -109,18 +120,18 @@ const Cart = () => {
       <Box sx={{ 
         bgcolor: 'background.default', 
         minHeight: '100vh', 
-        py: 2,
+        py: 3,
       }}>
-        <Container maxWidth="xs">
+        <Container maxWidth="sm">
           <Button
             component={Link}
             to="/shop"
             startIcon={<ArrowBack />}
             sx={{ 
-              mb: 2, 
-              color: 'secondary.main', 
+              mb: 3, 
+              color: 'text.primary', 
               '&:hover': { 
-                bgcolor: 'rgba(255, 193, 7, 0.1)',
+                bgcolor: 'rgba(255, 87, 34, 0.1)',
               },
             }}
           >
@@ -132,13 +143,16 @@ const Cart = () => {
           {cartItems.length === 0 ? (
             <Card sx={{ 
               textAlign: 'center', 
-              p: 3, 
+              p: 4, 
               bgcolor: 'background.paper',
             }}>
               <CardContent>
-                <ShoppingCart sx={{ fontSize: 48, color: 'primary.main', mb: 2 }} />
-                <Typography variant="h6" gutterBottom color="text.primary">
+                <ShoppingCart sx={{ fontSize: 64, color: 'primary.main', mb: 3 }} />
+                <Typography variant="h5" gutterBottom color="text.primary">
                   Your cart is empty
+                </Typography>
+                <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+                  Add some delicious items to your cart!
                 </Typography>
                 <Button
                   component={Link}
@@ -147,10 +161,12 @@ const Cart = () => {
                   sx={{ 
                     mt: 2, 
                     bgcolor: 'primary.main', 
-                    color: 'secondary.main',
+                    color: 'white',
                     '&:hover': { 
                       bgcolor: 'primary.dark',
                     },
+                    py: 1.5,
+                    px: 4,
                   }}
                 >
                   Browse Menu
@@ -158,31 +174,36 @@ const Cart = () => {
               </CardContent>
             </Card>
           ) : (
-            <Stack spacing={2}>
+            <Stack spacing={3}>
               <Card sx={{ 
                 bgcolor: 'background.paper',
               }}>
                 <CardContent>
-                  <Typography variant="h5" gutterBottom color="text.primary" sx={{ mb: 2 }}>
+                  <Typography variant="h5" gutterBottom color="text.primary" sx={{ mb: 3 }}>
                     Your Order
                   </Typography>
                   <Stack spacing={2}>
                     {cartItems.map((item) => (
-                      <Box key={item._id} sx={{ 
-                        display: 'flex', 
-                        alignItems: 'center',
-                        py: 1,
-                        borderBottom: '1px solid #E0E0E0',
-                      }}>
+                      <Paper
+                        key={item._id}
+                        elevation={0}
+                        sx={{ 
+                          display: 'flex', 
+                          alignItems: 'center',
+                          p: 2,
+                          borderRadius: 2,
+                          bgcolor: 'background.default',
+                        }}
+                      >
                         <Box
                           component="img"
                           src={item.image}
                           alt={item.name}
                           sx={{ 
-                            width: 60, 
-                            height: 60, 
+                            width: 70, 
+                            height: 70, 
                             objectFit: 'cover', 
-                            borderRadius: 1,
+                            borderRadius: 2,
                           }}
                         />
                         <Box sx={{ ml: 2, flexGrow: 1 }}>
@@ -192,7 +213,7 @@ const Cart = () => {
                           <Typography variant="body2" color="text.secondary">
                             {item.brand}
                           </Typography>
-                          <Typography variant="body1" color="primary.main" sx={{ mt: 0.5 }}>
+                          <Typography variant="body1" color="primary.main" sx={{ mt: 0.5, fontWeight: 600 }}>
                             ₹ {item.price.toFixed(2)}
                           </Typography>
                         </Box>
@@ -200,22 +221,38 @@ const Cart = () => {
                           <IconButton
                             onClick={() => item.qty > 1 ? addToCartHandler(item, item.qty - 1) : removeFromCartHandler(item._id)}
                             size="small"
-                            sx={{ color: 'secondary.main', bgcolor: 'primary.main', '&:hover': { bgcolor: 'primary.dark' } }}
+                            sx={{ 
+                              color: 'primary.main',
+                              bgcolor: 'background.paper',
+                              boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                              '&:hover': { 
+                                bgcolor: 'primary.main',
+                                color: 'white',
+                              } 
+                            }}
                           >
                             <Remove fontSize="small" />
                           </IconButton>
-                          <Typography variant="body1" sx={{ mx: 1 }}>
+                          <Typography variant="body1" sx={{ mx: 2, fontWeight: 600 }}>
                             {item.qty}
                           </Typography>
                           <IconButton
                             onClick={() => addToCartHandler(item, item.qty + 1)}
                             size="small"
-                            sx={{ color: 'secondary.main', bgcolor: 'primary.main', '&:hover': { bgcolor: 'primary.dark' } }}
+                            sx={{ 
+                              color: 'primary.main',
+                              bgcolor: 'background.paper',
+                              boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                              '&:hover': { 
+                                bgcolor: 'primary.main',
+                                color: 'white',
+                              } 
+                            }}
                           >
                             <Add fontSize="small" />
                           </IconButton>
                         </Box>
-                      </Box>
+                      </Paper>
                     ))}
                   </Stack>
                 </CardContent>
@@ -229,17 +266,19 @@ const Cart = () => {
                   </Typography>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                     <Typography variant="body1" color="text.secondary">Items:</Typography>
-                    <Typography variant="body1" color="text.primary">{cartItems.reduce((acc, item) => acc + item.qty, 0)}</Typography>
+                    <Typography variant="body1" color="text.primary" fontWeight={600}>
+                      {cartItems.reduce((acc, item) => acc + item.qty, 0)}
+                    </Typography>
                   </Box>
-                  <Divider sx={{ my: 1, borderColor: 'primary.main' }} />
+                  <Divider sx={{ my: 2, borderColor: 'rgba(0, 0, 0, 0.1)' }} />
                   <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                     <Typography variant="h6" color="text.primary">Total:</Typography>
-                    <Typography variant="h6" color="primary.main">
+                    <Typography variant="h6" color="primary.main" fontWeight={700}>
                       ₹ {cartItems.reduce((acc, item) => acc + item.qty * item.price, 0).toFixed(2)}
                     </Typography>
                   </Box>
                 </CardContent>
-                <CardActions>
+                <CardActions sx={{ p: 2 }}>
                   <Button
                     fullWidth
                     variant="contained"
@@ -247,12 +286,13 @@ const Cart = () => {
                     onClick={checkoutHandler}
                     sx={{ 
                       bgcolor: 'primary.main', 
-                      color: 'secondary.main',
+                      color: 'white',
                       '&:hover': { 
                         bgcolor: 'primary.dark',
                       },
                       '&:disabled': { bgcolor: '#E0E0E0' },
-                      py: 1.5
+                      py: 1.5,
+                      fontSize: '1rem',
                     }}
                   >
                     Proceed To Checkout
