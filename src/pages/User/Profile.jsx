@@ -279,14 +279,14 @@ const Profile = ({ onClose }) => {
                         value={editedAddress.address}
                         onChange={(e) => setEditedAddress({ ...editedAddress, address: e.target.value })}
                         className="w-full px-3 py-2 border border-yellow-400 rounded-md"
-                        placeholder="Address"
+                        placeholder="Flat/Room No."
                       />
                       <input
                         type="text"
                         value={editedAddress.city}
                         onChange={(e) => setEditedAddress({ ...editedAddress, city: e.target.value })}
                         className="w-full px-3 py-2 border border-yellow-400 rounded-md"
-                        placeholder="City"
+                        placeholder="Address Line 2"
                       />
                       <input
                         type="text"
@@ -300,7 +300,7 @@ const Profile = ({ onClose }) => {
                         value={editedAddress.country}
                         onChange={(e) => setEditedAddress({ ...editedAddress, country: e.target.value })}
                         className="w-full px-3 py-2 border border-yellow-400 rounded-md"
-                        placeholder="Country"
+                        placeholder="Contact No."
                       />
                       <button
                         onClick={handleSaveAddress}
@@ -352,7 +352,7 @@ const Profile = ({ onClose }) => {
                         className="w-full px-3 py-2 border border-yellow-400 rounded-md"
                         placeholder="Postal Code"
                       />
-
+                    
                       <input
                         type="text"
                         value={editedAddress.country}

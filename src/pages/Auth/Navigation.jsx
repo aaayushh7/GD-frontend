@@ -42,13 +42,17 @@ const Navigation = () => {
   }, [location]);
 
   const toggleProfileExpanded = () => {
-    if (userInfo && !userInfo.isAdmin) {
-      setIsProfileExpanded(prevState => !prevState);
-      setDropdownOpen(false);
+    if (userInfo) {
+      if (!userInfo.isAdmin) {
+        setIsProfileExpanded(prevState => !prevState);
+        setDropdownOpen(false);
+      } else {
+        setDropdownOpen(prevState => !prevState);
+      }
+      setActiveItem("/profile");
     } else {
-      setDropdownOpen(prevState => !prevState);
+      navigate("/login");
     }
-    setActiveItem("/profile");
   };
 
   const logoutHandler = async () => {
@@ -79,9 +83,9 @@ const Navigation = () => {
 
   const navItems = [
     { to: "/", icon: HomeIcon, label: "Home" },
-    {
-      to: `https://wa.me/916306500300`,
-      icon: HelpIcon,
+    { 
+      to: `https://wa.me/916306500300`, 
+      icon: HelpIcon, 
       label: "Help",
       onClick: (e) => {
         e.preventDefault();
@@ -152,10 +156,10 @@ const Navigation = () => {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50">
-      {!userInfo?.isAdmin && (
-        <div
+      {!userInfo?.isAdmin && userInfo && (
+        <div 
         ref={expandedAreaRef}
-        className={`fixed inset-x-0 bottom-14 overflow-y-auto transition-all duration-500 ease-in-out
+        className={`fixed inset-x-0 bottom-14 overflow-y-auto transition-all duration-500 ease-in-out 
                     backdrop-blur-lg bg-[#f8f0e0c9]
                     ${isProfileExpanded ? 'h-[calc(100vh-9rem)] opacity-100' : 'h-0 opacity-0'}`}
         style={{
@@ -179,7 +183,7 @@ const Navigation = () => {
         </div>
       )}
       {userInfo?.isAdmin && (
-        <div
+        <div 
           ref={dropdownRef}
           className={`bg-white rounded-t-3xl shadow-lg transition-all pb-9 mb-9 duration-300 ease-in-out overflow-hidden ${
             dropdownOpen ? 'max-h-[calc(100vh-5rem)]' : 'max-h-0'
@@ -192,7 +196,7 @@ const Navigation = () => {
           </div>
         </div>
       )}
-      <nav className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-[#ffeb54] backdrop-blur-md to-white shadow-lg rounded-t-xl border-t-1 border-yellow-400">
+      <nav className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-[#f8dd63] backdrop-blur-md to-white shadow-lg rounded-t-xl border-t-1 border-yellow-400">
   <div className="container mx-auto px-4">
     <div className="flex justify-between items-center py-2">
       {navItems.map((item) => (

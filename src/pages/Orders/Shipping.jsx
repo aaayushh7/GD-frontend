@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
@@ -10,7 +10,7 @@ import {
   useGetUserAddressQuery,
 } from "../../redux/api/addressApiSlice";
 import ProgressSteps from "../../components/ProgressSteps";
-import { FaMapMarkerAlt, FaPhone, FaMailBulk, FaGlobe, FaArrowRight, FaSave } from "react-icons/fa";
+import { FaMapMarkerAlt, FaPhone, FaMailBulk, FaGlobe, FaSave, FaUtensils, FaCheck } from "react-icons/fa";
 
 const validatePincode = (pincode) => {
   const num = parseInt(pincode, 10);
@@ -29,316 +29,373 @@ const calculateExtraCharge = (pincode) => {
   return 0;
 };
 
-const Shipping = () => {
-  const cart = useSelector((state) => state.cart);
-  const { shippingAddress } = cart;
+const InputField = React.memo(({ icon: Icon, label, ...props }) => (
+  <div className="relative mb-6 group">
+    <label className="block text-gray-800 text-sm font-bold mb-2 flex items-center transition-colors group-hover:text-yellow-600">
+      <Icon className="mr-2 text-yellow-500" />
+      {label}
+    </label>
+    <input
+      {...props}
+      className="w-full p-3 border-2 border-yellow-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-all duration-200 ease-in-out bg-white hover:border-yellow-400"
+    />
+  </div>
+));
 
-  const [paymentMethod, setPaymentMethod] = useState("");
-  const [address, setAddress] = useState(shippingAddress.address || "");
-  const [city, setCity] = useState(shippingAddress.city || "");
-  const [postalCode, setPostalCode] = useState(shippingAddress.postalCode || "");
-  const [country, setCountry] = useState(shippingAddress.country || "");
-  const [isPincodeValid, setIsPincodeValid] = useState(true);
-  const [extraCharge, setExtraCharge] = useState(0);
-  const [sliderPosition, setSliderPosition] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
+const AnimatedOrderButton = React.memo(({ onClick, extraCharge, isLoading }) => {
+  const [isHovered, setIsHovered] = useState(false);
+  const [isClicked, setIsClicked] = useState(false);
+
+  const handleClick = useCallback(() => {
+    setIsClicked(true);
+    onClick();
+    setTimeout(() => setIsClicked(false), 2000);
+  }, [onClick]);
+
+  return (
+    <button
+      onClick={handleClick}
+      disabled={isLoading || isClicked}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className={`
+        w-full h-16 relative overflow-hidden
+        rounded-lg font-bold text-lg
+        transition-all duration-300 ease-in-out
+        transform hover:scale-102
+        ${isClicked ? 'bg-green-500' : 'bg-yellow-400 hover:bg-yellow-500'}
+        ${isLoading ? 'cursor-not-allowed opacity-75' : 'cursor-pointer'}
+      `}
+    >
+      <div className={`
+        absolute inset-0 flex items-center justify-center
+        transition-transform duration-500
+        ${isClicked ? 'transform -translate-y-full' : 'transform translate-y-0'}
+      `}>
+        <div className="flex items-center space-x-2">
+          <FaUtensils className={`transition-transform duration-300 ${isHovered ? 'animate-bounce' : ''}`} />
+          <span>Place Order {extraCharge > 0 ? `(+₹${extraCharge})` : ''}</span>
+        </div>
+      </div>
+      
+      <div className={`
+        absolute inset-0 flex items-center justify-center
+        text-white transition-transform duration-500
+        ${isClicked ? 'transform translate-y-0' : 'transform translate-y-full'}
+      `}>
+        <div className="flex items-center space-x-2">
+          <FaCheck className="animate-bounce" />
+          <span>Order Placed!</span>
+        </div>
+      </div>
+      
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-yellow-400">
+          <div className="flex items-center space-x-2">
+            <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span>Processing...</span>
+          </div>
+        </div>
+      )}
+    </button>
+  );
+});
+
+const LoadingSpinner = React.memo(() => (
+  <div className="flex justify-center items-center h-screen bg-white">
+    <div className="relative w-32 h-32 animate-pulse">
+      <div className="absolute inset-0 animate-spin">
+        <svg className="w-full h-full" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="50" cy="50" r="45" fill="none" stroke="#FCD34D" strokeWidth="8" strokeLinecap="round" strokeDasharray="70 30">
+            <animate attributeName="stroke-dashoffset" from="0" to="100" dur="1s" repeatCount="indefinite" />
+          </circle>
+        </svg>
+      </div>
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className="w-16 h-16 bg-yellow-400 rounded-full animate-bounce" />
+      </div>
+    </div>
+    <div className="ml-4 text-center">
+      <p className="text-yellow-800 font-semibold text-lg animate-pulse">Loading your details...</p>
+      <p className="mt-2 text-yellow-600">Your delicious meal is getting closer!</p>
+    </div>
+  </div>
+));
+
+const Shipping = () => {
+  const { shippingAddress } = useSelector((state) => state.cart);
+  const [formState, setFormState] = useState({
+    address: shippingAddress.address || "",
+    city: shippingAddress.city || "",
+    postalCode: shippingAddress.postalCode || "",
+    country: shippingAddress.country || "",
+    paymentMethod: "",
+    isPincodeValid: true,
+    extraCharge: 0,
+  });
+
   const [showSaveAddressButton, setShowSaveAddressButton] = useState(false);
-  const [showSwipeToOrder, setShowSwipeToOrder] = useState(false);
-  const [isCheckingAddress, setIsCheckingAddress] = useState(true);
+  const [showOrderButton, setShowOrderButton] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const sliderRef = useRef(null);
-  const ballRef = useRef(null);
 
   const [saveAddress, { isLoading: isSavingAddress }] = useSaveAddressMutation();
-  const { data: userAddress, isLoading: isLoadingAddress } = useGetUserAddressQuery();
+  const { data: userAddress, isLoading: isLoadingAddress, isSuccess } = useGetUserAddressQuery();
 
   useEffect(() => {
-    const checkSavedAddress = async () => {
-      setIsCheckingAddress(true);
-      if (userAddress) {
-        console.log("User's saved address:", userAddress);
-        dispatch(saveShippingAddress({
-          address: userAddress.address || "",
-          city: userAddress.city || "",
-          postalCode: userAddress.postalCode || "",
-          country: userAddress.country || "",
-          extraCharge: userAddress.extraCharge || 0
-        }));
-        dispatch(savePaymentMethod("Pay on delivery")); // Default payment method
-        setIsCheckingAddress(false);
-        navigate("/placeorder");
-      } else {
-        setIsCheckingAddress(false);
-        setAddress(userAddress?.address || "");
-        setCity(userAddress?.city || "");
-        setPostalCode(userAddress?.postalCode || "");
-        setCountry(userAddress?.country || "");
-        setExtraCharge(userAddress?.extraCharge || 0);
-      }
-    };
-
-    checkSavedAddress();
-  }, [userAddress, dispatch, navigate]);
+    if (isSuccess && userAddress) {
+      dispatch(saveShippingAddress({
+        address: userAddress.address || "",
+        city: userAddress.city || "",
+        postalCode: userAddress.postalCode || "",
+        country: userAddress.country || "",
+        extraCharge: userAddress.extraCharge || 0
+      }));
+      dispatch(savePaymentMethod("Pay on delivery"));
+      navigate("/placeorder");
+    } else if (isSuccess) {
+      setFormState(prevState => ({
+        ...prevState,
+        address: shippingAddress.address || "",
+        city: shippingAddress.city || "",
+        postalCode: shippingAddress.postalCode || "",
+        country: shippingAddress.country || "",
+        extraCharge: shippingAddress.extraCharge || 0,
+      }));
+    }
+  }, [userAddress, isSuccess, dispatch, navigate, shippingAddress]);
 
   useEffect(() => {
+    const { address, city, postalCode, country, paymentMethod } = formState;
     setShowSaveAddressButton(address && city && postalCode && country);
-    setShowSwipeToOrder(showSaveAddressButton && paymentMethod);
-  }, [address, city, postalCode, country, paymentMethod]);
+    setShowOrderButton(showSaveAddressButton && paymentMethod);
+  }, [formState, showSaveAddressButton]);
 
-  const submitHandler = async (e) => {
-    e.preventDefault();
-    if (!paymentMethod) {
+  const handleInputChange = useCallback((e) => {
+    const { name, value } = e.target;
+    setFormState(prevState => {
+      const newState = { ...prevState, [name]: value };
+      if (name === 'postalCode') {
+        const isValid = validatePincode(value);
+        const charge = isValid ? calculateExtraCharge(value) : 0;
+        return { ...newState, isPincodeValid: isValid, extraCharge: charge };
+      }
+      return newState;
+    });
+  }, []);
+
+  const submitHandler = useCallback(async (e) => {
+    if (e) e.preventDefault();
+    if (!formState.paymentMethod) {
       alert("Please select a payment method");
       return;
     }
+    setIsSubmitting(true);
+    const { address, city, postalCode, country, extraCharge, paymentMethod } = formState;
     dispatch(saveShippingAddress({ address, city, postalCode, country, extraCharge }));
     dispatch(savePaymentMethod(paymentMethod));
-    navigate("/placeorder");
-  };
+    setTimeout(() => {
+      setIsSubmitting(false);
+      navigate("/placeorder");
+    }, 2000);
+  }, [formState, dispatch, navigate]);
 
-  const handleSaveAddress = async () => {
+  const handleSaveAddress = useCallback(async () => {
     try {
+      const { address, city, postalCode, country, extraCharge } = formState;
       await saveAddress({ address, city, postalCode, country, extraCharge }).unwrap();
-      alert("Address saved successfully!");
+      const successToast = document.createElement('div');
+      successToast.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg transform transition-all duration-500 ease-in-out';
+      successToast.textContent = 'Address saved successfully!';
+      document.body.appendChild(successToast);
+      setTimeout(() => {
+        successToast.style.opacity = '0';
+        setTimeout(() => successToast.remove(), 500);
+      }, 2000);
     } catch (err) {
       console.error("Failed to save address:", err);
       alert("Failed to save address. Please try again.");
     }
-  };
+  }, [formState, saveAddress]);
 
-  const handlePostalCodeChange = (e) => {
-    const newPostalCode = e.target.value;
-    setPostalCode(newPostalCode);
-    const isValid = validatePincode(newPostalCode);
-    setIsPincodeValid(isValid);
-    if (isValid) {
-      const charge = calculateExtraCharge(newPostalCode);
-      setExtraCharge(charge);
-    } else {
-      setExtraCharge(0);
-    }
-  };
+  const paymentMethods = useMemo(() => ["Pay on delivery", "PayPal"], []);
 
-  const handlePaymentMethodSelect = (method) => {
-    setPaymentMethod(method);
-  };
-
-  const updateSliderPosition = (clientX) => {
-    const slider = sliderRef.current;
-    const ball = ballRef.current;
-    if (!slider || !ball) return;
-
-    const rect = slider.getBoundingClientRect();
-    const ballWidth = ball.offsetWidth;
-    const maxX = rect.width;
-    let newX = clientX - rect.left - ballWidth / 2;
-    newX = Math.max(0, Math.min(newX, maxX));
-
-    const percentage = (newX / maxX) * 100;
-    setSliderPosition(percentage);
-  };
-
-  const handleStart = (clientX) => {
-    setIsDragging(true);
-    updateSliderPosition(clientX);
-  };
-
-  const handleMove = (clientX) => {
-    if (isDragging) {
-      updateSliderPosition(clientX);
-    }
-  };
-
-  const handleEnd = () => {
-    setIsDragging(false);
-    if (sliderPosition >= 90) {
-      submitHandler({ preventDefault: () => {} });
-    } else {
-      setSliderPosition(0);
-    }
-  };
-
-  const handleTouchStart = (e) => {
-    e.preventDefault();
-    handleStart(e.touches[0].clientX);
-  };
-
-  const handleTouchMove = (e) => {
-    e.preventDefault();
-    handleMove(e.touches[0].clientX);
-  };
-
-  const handleMouseDown = (e) => {
-    handleStart(e.clientX);
-  };
-
-  const handleMouseMove = (e) => {
-    handleMove(e.clientX);
-  };
-
-  if (isCheckingAddress) {
-    return (
-      <div className="flex justify-center items-center h-screen bg-amber-50">
-        <div className="text-center">
-          <div className="relative w-32 h-32">
-            <div className="absolute inset-0 animate-spin">
-              <svg className="w-full h-full" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="50" cy="50" r="45" fill="none" stroke="#FBBF24" strokeWidth="8" strokeDasharray="70 30" />
-              </svg>
-            </div>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <svg className="w-16 h-16 text-amber-600" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                <path d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zm2 5V6a2 2 0 10-4 0v1h4zm-6 3a1 1 0 112 0 1 1 0 01-2 0zm7-1a1 1 0 100 2 1 1 0 000-2z" />
-              </svg>
-            </div>
-          </div>
-          <p className="mt-4 text-amber-800 font-semibold text-lg">Checking for saved address in database...</p>
-          <p className="mt-2 text-amber-600">Your delicious meal is just moments away!</p>
-        </div>
-      </div>
-    );
+  if (isLoadingAddress || isSubmitting) {
+    return <LoadingSpinner />;
   }
 
   return (
-    <div className="bg-amber-50 min-h-screen py-12">
+    <div className="bg-white min-h-screen py-12 transition-all duration-300">
       <div className="container mx-auto px-4">
         <ProgressSteps step1 step2 />
         <div className="mt-10 flex justify-center">
-          <form onSubmit={submitHandler} className="w-full max-w-lg bg-white p-8 rounded-lg shadow-md border-2 border-amber-500">
-            <h1 className="text-3xl font-bold mb-6 text-amber-800 text-center">Shipping Details</h1>
-            <div className="mb-6">
-              <label className="block text-gray-700 text-sm font-bold mb-2 flex items-center">
-                <FaMapMarkerAlt className="mr-2 text-amber-500" />
-                Address Line 1 :
-              </label>
-              <input
-                type="text"
-                className="w-full p-3 border-2 border-amber-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-                placeholder="Enter address"
-                value={address}
-                required
-                onChange={(e) => setAddress(e.target.value)}
-              />
-            </div>
-            <div className="mb-6">
-              <label className="block text-gray-700 text-sm font-bold mb-2 flex items-center">
-                <FaPhone className="mr-2 text-amber-500" />
-                Address Line 2:
-              </label>
-              <input
-                type="tel"
-                className="w-full p-3 border-2 border-amber-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-                placeholder="Enter Contact Number"
-                value={city}
-                required
-                onChange={(e) => setCity(e.target.value)}
-              />
-            </div>
-            <div className="mb-6">
-              <label className="block text-gray-700 text-sm font-bold mb-2 flex items-center">
-                <FaMailBulk className="mr-2 text-amber-500" />
-                Postal Code
-              </label>
-              <input
-                type="text"
-                className="w-full p-3 border-2 border-amber-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-                placeholder="Enter postal code"
-                value={postalCode}
-                required
-                onChange={handlePostalCodeChange}
-              />
-              {!isPincodeValid && postalCode && (
-                <p className="text-red-500 text-sm mt-1">Invalid pincode. Must be in Karnataka, Andhra Pradesh, Kerala, Tamil Nadu.</p>
-              )}
-              {isPincodeValid && extraCharge > 0 && (
-                <p className="text-amber-500 text-sm mt-1">Extra delivery charge of ₹{extraCharge} applies to this area (At the time of delivery)</p>
-              )}
-            </div>
-            <div className="mb-6">
-              <label className="block text-gray-700 text-sm font-bold mb-2 flex items-center">
-                <FaGlobe className="mr-2 text-amber-500" />
-                Contact No.
-              </label>
-              <input
-                type="text"
-                className="w-full p-3 border-2 border-amber-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-                placeholder="Enter country"
-                value={country}
-                required
-                onChange={(e) => setCountry(e.target.value)}
-              />
-            </div>
+          <form onSubmit={submitHandler} className="w-full max-w-lg bg-white p-8 rounded-lg shadow-lg border-2 border-yellow-400 transform transition-all duration-300 hover:shadow-2xl">
+            <h1 className="text-3xl font-bold mb-8 text-yellow-800 text-center">
+              Shipping Details
+            </h1>
+
+            <InputField
+              icon={FaMapMarkerAlt}
+              label="Address Line 1"
+              type="text"
+              name="address"
+              placeholder="Enter address"
+              value={formState.address}
+              required
+              onChange={handleInputChange}
+            />
+
+            <InputField
+              icon={FaPhone}
+              label="Address Line 2"
+              type="tel"
+              name="city"
+              placeholder="Enter Contact Number"
+              value={formState.city}
+              required
+              onChange={handleInputChange}
+            />
+
+            <InputField
+              icon={FaMailBulk}
+              label="Postal Code"
+              type="text"
+              name="postalCode"
+              placeholder="Enter postal code"
+              value={formState.postalCode}
+              required
+              onChange={handleInputChange}
+              className={`w-full p-3 border-2 rounded-md transition-all duration-200 ease-in-out ${
+                !formState.isPincodeValid && formState.postalCode
+                  ? 'border-red-400 focus:ring-red-400'
+                  : 'border-yellow-300 focus:ring-yellow-500'
+              }`}
+            />
+
+            {!formState.isPincodeValid && formState.postalCode && (
+              <p className="text-red-500 text-sm mt-1 animate-fade-in">
+                Invalid pincode. Must be in Karnataka, Andhra Pradesh, Kerala, Tamil Nadu.
+              </p>
+            )}
+            
+            {formState.isPincodeValid && formState.extraCharge > 0 && (
+              <p className="text-yellow-600 text-sm mt-1 animate-fade-in">
+                Extra delivery charge of ₹{formState.extraCharge} applies to this area
+              </p>
+            )}
+
+            <InputField
+              icon={FaGlobe}
+              label="Contact No."
+              type="text"
+              name="country"
+              placeholder="Enter country"
+              value={formState.country}
+              required
+              onChange={handleInputChange}
+            />
+
             {showSaveAddressButton && (
-              <div className="mb-6">
+              <div className="mb-6 transform transition-all duration-300 hover:scale-102">
                 <button
                   type="button"
                   onClick={handleSaveAddress}
                   disabled={isSavingAddress}
-                  className="w-full bg-amber-500 text-white py-2 px-4 rounded-md hover:bg-amber-600 transition-colors flex items-center justify-center"
+                  className="w-full bg-yellow-400 text-black py-3 px-4 rounded-md hover:bg-yellow-500 transition-all duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <FaSave className="mr-2" />
-                  {isSavingAddress ? "Saving..." : "Save Address"}
+                  {isSavingAddress ? (
+                    <span className="inline-flex items-center">
+                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>Saving...
+                    </span>
+                  ) : (
+                    "Save Address"
+                  )}
                 </button>
               </div>
             )}
+
             <div className="mb-6">
-              <label className="block text-gray-700 text-sm font-bold mb-2">Payment Method</label>
+              <label className="block text-gray-800 text-sm font-bold mb-2">Payment Method</label>
               <div className="flex space-x-4">
-                <button
-                  type="button"
-                  className={`flex-1 py-2 px-4 rounded-md text-sm font-medium ${
-                    paymentMethod === "Pay on delivery"
-                      ? "bg-yellow-400 text-black border border-black"
-                      : "bg-white text-black border border-black"
-                  } transition-colors`}
-                  onClick={() => handlePaymentMethodSelect("Pay on delivery")}
-                >
-                  Pay on delivery
-                </button>
-                <button
-                  type="button"
-                  className={`flex-1 py-2 px-4 rounded-md text-sm font-medium ${
-                    paymentMethod === "PayPal"
-                      ? "bg-yellow-400 text-black border border-black"
-                      : "bg-white text-black border border-black"
-                  } transition-colors`}
-                  onClick={() => handlePaymentMethodSelect("PayPal")}
-                >
-                  PayPal
-                </button>
+                {paymentMethods.map((method) => (
+                  <button
+                    key={method}
+                    type="button"
+                    className={`flex-1 py-3 px-4 rounded-md text-sm font-medium transition-all duration-200 transform hover:scale-102 ${
+                      formState.paymentMethod === method
+                        ? "bg-yellow-400 text-black border-2 border-black shadow-md"
+                        : "bg-white text-black border-2 border-yellow-400 hover:border-yellow-500"
+                    }`}
+                    onClick={() => setFormState(prev => ({ ...prev, paymentMethod: method }))}
+                  >
+                    {method}
+                  </button>
+                ))}
               </div>
             </div>
 
-            {showSwipeToOrder && (
+            {showOrderButton && (
               <div className="mt-8">
-                <div
-                  ref={sliderRef}
-                  className="relative h-16 bg-yellow-200 rounded-full overflow-hidden cursor-pointer select-none touch-none"
-                  onMouseDown={handleMouseDown}
-                  onMouseMove={handleMouseMove}
-                  onMouseUp={handleEnd}
-                  onMouseLeave={handleEnd}
-                  onTouchStart={handleTouchStart}
-                  onTouchMove={handleTouchMove}
-                  onTouchEnd={handleEnd}
-                >
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <span className="text-yellow-600 font-medium">
-                      Swipe to Place Order {extraCharge > 0 && `(+₹${extraCharge})`}
-                    </span>
-                  </div>
-                  <div
-                    ref={ballRef}
-                    className="absolute top-1 left-1 w-14 h-14 bg-yellow-400 rounded-full flex items-center justify-center shadow-md transition-transform duration-100 ease-out"
-                    style={{ transform: `translateX(${sliderPosition}%)` }}
-                  >
-                    <FaArrowRight className="text-white text-xl" />
-                  </div>
-                </div>
+                <AnimatedOrderButton 
+                  onClick={submitHandler}
+                  extraCharge={formState.extraCharge}
+                  isLoading={isSubmitting}
+                />
               </div>
             )}
+
+            <style jsx>{`
+              @keyframes fade-in {
+                from { opacity: 0; transform: translateY(-10px); }
+                to { opacity: 1; transform: translateY(0); }
+              }
+              
+              .animate-fade-in {
+                animation: fade-in 0.3s ease-out forwards;
+              }
+              
+              .hover\:scale-102:hover {
+                transform: scale(1.02);
+              }
+              
+              input:focus {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+              }
+              
+              .input-focus-ring {
+                transition: all 0.2s ease-in-out;
+              }
+              
+              .input-focus-ring:focus-within {
+                transform: translateY(-1px);
+              }
+
+              @keyframes pulse-shadow {
+                0% {
+                  box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.4);
+                }
+                70% {
+                  box-shadow: 0 0 0 10px rgba(251, 191, 36, 0);
+                }
+                100% {
+                  box-shadow: 0 0 0 0 rgba(251, 191, 36, 0);
+                }
+              }
+
+              .animate-pulse-shadow {
+                animation: pulse-shadow 2s infinite;
+              }
+            `}</style>
           </form>
         </div>
       </div>
@@ -346,4 +403,4 @@ const Shipping = () => {
   );
 };
 
-export default Shipping;
+export default React.memo(Shipping);
