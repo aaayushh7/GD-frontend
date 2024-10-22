@@ -17,7 +17,6 @@ export const orderApiSlice = apiSlice.injectEndpoints({
         body: { code, userId },
       }),
     }),
-
     createCoupon: builder.mutation({
       query: (couponData) => ({
         url: COUPONS_URL,
@@ -44,13 +43,11 @@ export const orderApiSlice = apiSlice.injectEndpoints({
       }),
       providesTags: ["Coupon"],
     }),
-
     getOrderDetails: builder.query({
       query: (id) => ({
         url: `${ORDERS_URL}/${id}`,
       }),
     }),
-
     payOrder: builder.mutation({
       query: ({ orderId, details }) => ({
         url: `${ORDERS_URL}/${orderId}/pay`,
@@ -58,7 +55,12 @@ export const orderApiSlice = apiSlice.injectEndpoints({
         body: details,
       }),
     }),
-
+    shipOrder: builder.mutation({
+      query: (orderId) => ({
+        url: `${ORDERS_URL}/${orderId}/ship`,
+        method: "PUT",
+      }),
+    }),
     cashfreeOrder: builder.mutation({
       query: ({ orderId, paymentDetails }) => ({
         url: `${ORDERS_URL}/${orderId}/cashfree`,
@@ -66,33 +68,28 @@ export const orderApiSlice = apiSlice.injectEndpoints({
         body: paymentDetails,
       }),
     }),
-
     getPaypalClientId: builder.query({
       query: () => ({
         url: PAYPAL_URL,
       }),
     }),
-
     getMyOrders: builder.query({
       query: () => ({
         url: `${ORDERS_URL}/mine`,
       }),
       keepUnusedDataFor: 5,
     }),
-
     getOrders: builder.query({
       query: () => ({
         url: ORDERS_URL,
       }),
     }),
-
     deliverOrder: builder.mutation({
       query: (orderId) => ({
         url: `${ORDERS_URL}/${orderId}/deliver`,
         method: "PUT",
       }),
     }),
-
     verifyPayment: builder.mutation({
       query: ({ orderId, paymentSessionId }) => ({
         url: `${ORDERS_URL}/${orderId}/verify-payment`,
@@ -100,15 +97,12 @@ export const orderApiSlice = apiSlice.injectEndpoints({
         body: { paymentSessionId },
       }),
     }),
-
     getTotalOrders: builder.query({
       query: () => `${ORDERS_URL}/total-orders`,
     }),
-
     getTotalSales: builder.query({
       query: () => `${ORDERS_URL}/total-sales`,
     }),
-
     getTotalSalesByDate: builder.query({
       query: () => `${ORDERS_URL}/total-sales-by-date`,
     }),
@@ -122,6 +116,7 @@ export const {
   useCreateOrderMutation,
   useGetOrderDetailsQuery,
   usePayOrderMutation,
+  useShipOrderMutation,
   useGetPaypalClientIdQuery,
   useGetMyOrdersQuery,
   useDeliverOrderMutation,
@@ -132,5 +127,5 @@ export const {
   useDeleteCouponMutation,
   useFetchCouponsQuery,
   useVerifyPaymentMutation,
-  useCashfreeOrderMutation, // Changed from useCashfreePaymentMutation
+  useCashfreeOrderMutation,
 } = orderApiSlice;

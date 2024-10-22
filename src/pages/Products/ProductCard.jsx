@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { FiShoppingCart, FiMinus, FiPlus, FiChevronDown, FiChevronUp } from 'react-icons/fi';
+import { FiShoppingCart, FiMinus, FiPlus, FiChevronDown, FiChevronUp, FiHeart } from 'react-icons/fi';
 import { useDispatch, useSelector } from 'react-redux';
 import { addToCart, removeFromCart } from '../../redux/features/cart/cartSlice';
+import { addToFavorites, removeFromFavorites } from '../../redux/features/favorites/favoriteSlice';
 import { toast } from 'react-toastify';
-import HeartIcon from './HeartIcon';
 
 const ProductCard = ({ p }) => {
   const dispatch = useDispatch();
   const [expanded, setExpanded] = useState(false);
   const cartItems = useSelector((state) => state.cart.cartItems);
+  const favorites = useSelector((state) => state.favorites);
   const itemInCart = cartItems.find((item) => item._id === p._id);
+  const isFavorite = favorites.some((item) => item._id === p._id);
   const [quantity, setQuantity] = useState(itemInCart ? itemInCart.qty : 0);
 
   useEffect(() => {
@@ -22,6 +24,22 @@ const ProductCard = ({ p }) => {
       position: toast.POSITION.TOP_RIGHT,
       autoClose: 2000,
     });
+  };
+
+  const toggleFavorite = () => {
+    if (isFavorite) {
+      dispatch(removeFromFavorites(p._id));
+      toast.info('Removed from favorites', {
+        position: toast.POSITION.TOP_RIGHT,
+        autoClose: 2000,
+      });
+    } else {
+      dispatch(addToFavorites(p));
+      toast.success('Added to favorites', {
+        position: toast.POSITION.TOP_RIGHT,
+        autoClose: 2000,
+      });
+    }
   };
 
   const incrementQty = () => {
@@ -45,10 +63,25 @@ const ProductCard = ({ p }) => {
   };
 
   return (
-    <div className={`bg-white rounded-2xl shadow-md overflow-hidden transition-all duration-300 ease-in-out hover:shadow-lg transform hover:-translate-y-1 flex ${expanded ? 'min-h-[8rem]' : 'h-[8rem]'} border border-gray-100 p-4`}>
+    <div className={`bg-white rounded-xl overflow-hidden transition-all duration-300 ease-in-out shadow-sm transform hover:-translate-y-1 flex ${expanded ? 'min-h-[8rem]' : 'h-[8rem]'} border border-gray-100 p-4`}>
       <div className="w-[65%] pr-3 flex flex-col justify-between">
         <div>
-          <h3 className="text-base font-semibold text-gray-900 mb-1 truncate">{p?.name}</h3>
+          <div className="flex justify-between items-start">
+            <h3 className="text-base font-semibold text-gray-900 mb-1 truncate">{p?.name}</h3>
+            <button
+              onClick={toggleFavorite}
+              className={`p-1.5 rounded-full transition-all duration-200 ${
+                isFavorite 
+                  ? 'bg-red-50 text-red-500 hover:bg-red-100' 
+                  : 'bg-gray-50 text-gray-400 hover:bg-gray-100'
+              }`}
+            >
+              <FiHeart
+                size={16}
+                className={`${isFavorite ? 'fill-current' : ''}`}
+              />
+            </button>
+          </div>
           <div className="text-gray-600 text-sm mb-2">
             <p className="leading-relaxed">
               {expanded ? p?.description : truncateDescription(p?.description, 20)}
@@ -90,20 +123,17 @@ const ProductCard = ({ p }) => {
           <span className="absolute top-2 right-2 bg-yellow-100 text-yellow-800 text-[10px] font-semibold px-2 py-1 rounded-full shadow-sm">
             {p?.brand}
           </span>
-          <div className="absolute top-2 left-2">
-            <HeartIcon product={p} size={16} />
-          </div>
           <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-[90%]">
             {quantity === 0 ? (
               <button
                 onClick={handleAddToCart}
-                className="w-full bg-yellow-400 text-black px-2 py-1.5 rounded-xl text-xs font-semibold shadow-md hover:bg-yellow-500 transition-colors duration-200 ease-in-out flex items-center justify-center"
+                className="w-full bg-yellow-400 text-black px-2 py-1.5 rounded-md text-xs font-semibold shadow-sm hover:bg-yellow-500 transition-colors duration-200 ease-in-out flex items-center justify-center"
               >
                 <FiShoppingCart className="mr-1" size={12} />
                 Add 
               </button>
             ) : (
-              <div className="flex items-center justify-center bg-white rounded-full shadow-md border border-yellow-400">
+              <div className="flex items-center justify-center bg-white rounded-full shadow-sm border border-yellow-400">
                 <button
                   className="text-yellow-600 p-1.5 hover:bg-yellow-50 transition-colors duration-200 rounded-l-full"
                   onClick={decrementQty}

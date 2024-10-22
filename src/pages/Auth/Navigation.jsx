@@ -13,7 +13,7 @@ import {
 } from "react-icons/ai";
 import { useLogoutMutation } from "../../redux/api/usersApiSlice";
 import { logout } from "../../redux/features/auth/authSlice";
-import FavoritesCount from "../Products/FavoritesCount";
+// import FavoritesCount from "../Products/FavoritesCount";
 import UserIcon from "../../assets/user";
 import HeartIcon from "../../assets/heart";
 import HomeIcon from "../../assets/home";
@@ -130,11 +130,12 @@ const Navigation = () => {
             {cartItems.reduce((a, c) => a + c.qty, 0)}
           </span>
         )}
-        {label === "Favorites" && <FavoritesCount />}
+        {label === "Favorites"}
       </Link>
     );
   };
 
+  // eslint-disable-next-line react/prop-types
   const DropdownItem = ({ to, onClick, icon: Icon, label }) => {
     const content = (
       <div className="flex items-center justify-start w-full py-3 px-4 hover:bg-yellow-100 transition-colors duration-300">
@@ -174,7 +175,7 @@ const Navigation = () => {
             <div className="mt-6 pt-6 border-t border-gray-200 px-6 pb-6">
               <button
                 onClick={logoutHandler}
-                className="w-full bg-red-500 text-white py-2 px-4 rounded-md hover:bg-yellow-200 transition duration-300"
+                className="w-full bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-600 transition duration-300"
               >
                 Logout
               </button>

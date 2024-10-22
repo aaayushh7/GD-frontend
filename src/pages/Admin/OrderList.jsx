@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import Message from "../../components/Message";
 import Loader from "../../components/Loader";
 import { Link } from "react-router-dom";
-import { useGetOrdersQuery, useDeliverOrderMutation, usePayOrderMutation } from "../../redux/api/orderApiSlice";
+import { useGetOrdersQuery, useDeliverOrderMutation, usePayOrderMutation, useShipOrderMutation } from "../../redux/api/orderApiSlice";
 import AdminMenu from "./AdminMenu";
 import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
@@ -13,26 +13,25 @@ const OrderList = () => {
   const { data: orders, isLoading, error, refetch } = useGetOrdersQuery({}, {
     pollingInterval: 5000, // Poll for updates every 5 seconds
   });
-
+  
   const [sortedOrders, setSortedOrders] = useState([]);
   const [playSound, setPlaySound] = useState(false);
   const [continuousSound, setContinuousSound] = useState(false);
   const audioRef = useRef(null);
-
+  
   const [deliverOrder, { isLoading: loadingDeliver }] = useDeliverOrderMutation();
   const [payOrder, { isLoading: loadingPay }] = usePayOrderMutation();
+  const [shipOrder, { isLoading: loadingShip }] = useShipOrderMutation();
+
 
   useEffect(() => {
     if (orders) {
       const sorted = [...orders].sort((a, b) => {
-        // Prioritize undelivered and unpaid orders
-        if ((!a.isDelivered || !a.isPaid) && (b.isDelivered && b.isPaid)) return -1;
-        if ((a.isDelivered && a.isPaid) && (!b.isDelivered || !b.isPaid)) return 1;
-        // Then sort by creation date (newest first)
+        if ((!a.isDelivered || !a.isPaid || !a.isShipped) && (b.isDelivered && b.isPaid && b.isShipped)) return -1;
+        if ((a.isDelivered && a.isPaid && a.isShipped) && (!b.isDelivered || !b.isPaid || !b.isShipped)) return 1;
         return new Date(b.createdAt) - new Date(a.createdAt);
       });
 
-      // Check for new orders
       if (sortedOrders.length > 0 && sorted.length > sortedOrders.length) {
         setPlaySound(true);
         setContinuousSound(true);
@@ -77,7 +76,16 @@ const OrderList = () => {
     try {
       await payOrder({ orderId, details: { payer: {} } });
       refetch();
-      toast.success("Order marked as Shipped");
+      toast.success("Order marked as paid");
+    } catch (err) {
+      toast.error(err?.data?.message || err.error);
+    }
+  };
+  const markAsShipped = async (orderId) => {
+    try {
+      await shipOrder(orderId);
+      refetch();
+      toast.success("Order marked as shipped");
     } catch (err) {
       toast.error(err?.data?.message || err.error);
     }
@@ -89,8 +97,8 @@ const OrderList = () => {
       <h1 className="text-3xl font-bold mb-6 text-amber-800">Orders</h1>
       <audio ref={audioRef} src={NotificationSound} loop={continuousSound} />
       {continuousSound && (
-        <button
-          onClick={stopSound}
+        <button 
+          onClick={stopSound} 
           className="mb-4 bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
         >
           Stop Sound
@@ -132,10 +140,13 @@ const OrderList = () => {
                   <p className="text-2xl font-bold mb-4 text-amber-800">₹ {order.totalPrice}</p>
                   <div className="flex justify-between mb-4">
                     <span className={`px-3 py-1 rounded-full ${order.isPaid ? "bg-green-500" : "bg-red-500"} text-white`}>
-                      {order.isPaid ? "Shipped" : "Not Shipped"}
+                      {order.isPaid ? "Paid" : "Unpaid"}
                     </span>
                     <span className={`px-3 py-1 rounded-full ${order.isDelivered ? "bg-green-500" : "bg-red-500"} text-white`}>
                       {order.isDelivered ? "Delivered" : "Undelivered"}
+                    </span>
+                    <span className={`px-3 py-1 rounded-full ${order.isShipped ? "bg-green-500" : "bg-yellow-500"} text-white`}>
+                      {order.isShipped ? "Shipped" : "Not Shipped"}
                     </span>
                   </div>
                   <div className="flex flex-wrap gap-2">
@@ -145,7 +156,7 @@ const OrderList = () => {
                       </button>
                     </Link>
                     {!order.isDelivered && (
-                      <button
+                      <button 
                         onClick={() => markAsDelivered(order._id)}
                         className="flex-1 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
                         disabled={loadingDeliver}
@@ -153,13 +164,22 @@ const OrderList = () => {
                         {loadingDeliver ? "Loading..." : "Mark Delivered"}
                       </button>
                     )}
+                     {!order.isShipped && (
+                      <button 
+                        onClick={() => markAsShipped(order._id)}
+                        className="flex-1 bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors"
+                        disabled={loadingShip}
+                      >
+                        {loadingShip ? "Loading..." : "Mark Shipped"}
+                      </button>
+                    )}
                     {!order.isPaid && (
-                      <button
+                      <button 
                         onClick={() => markAsPaid(order._id)}
                         className="flex-1 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
                         disabled={loadingPay}
                       >
-                        {loadingPay ? "Loading..." : "Mark Shipped"}
+                        {loadingPay ? "Loading..." : "Mark Paid"}
                       </button>
                     )}
                   </div>

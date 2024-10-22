@@ -11,8 +11,7 @@ import imagePlaceholder from '../assets/12.png';
 import ProductCard from "./Products/ProductCard";
 import { useCheckLocationMutation } from '../redux/api/apiSlice';
 
-
-const LocationCheck = ({ status }) => (
+const LocationCheck = ({ status, onRetry }) => (
   <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-bl from-yellow-200 to-yellow-500">
     <motion.div
       initial={{ scale: 0 }}
@@ -31,14 +30,25 @@ const LocationCheck = ({ status }) => (
       {status === 'checking' ? 'Checking your location...' : 'Location not available'}
     </motion.h2>
     {status === 'unavailable' && (
-      <motion.p
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.7 }}
-        className="mt-4 text-xl text-white text-center"
-      >
-        Sorry, our service is currently not available in your area.
-      </motion.p>
+      <>
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.7 }}
+          className="mt-4 text-xl text-white text-center"
+        >
+          Sorry, our service is currently not available in your area or we couldn't access your location.
+        </motion.p>
+        <motion.button
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.9 }}
+          className="mt-4 bg-white text-yellow-500 px-6 py-2 rounded-full font-bold"
+          onClick={onRetry}
+        >
+          Retry
+        </motion.button>
+      </>
     )}
   </div>
 );
@@ -50,7 +60,10 @@ const HomePage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [displayedProducts, setDisplayedProducts] = useState([]);
   const [shouldFetchProducts, setShouldFetchProducts] = useState(false);
-  const [isLocationAllowed, setIsLocationAllowed] = useState(null);
+  const [locationStatus, setLocationStatus] = useState(() => {
+    const storedStatus = localStorage.getItem('locationStatus');
+    return storedStatus || 'checking';
+  });
   const [checkLocation] = useCheckLocationMutation();
 
   const { data: categories, isLoading: isCategoriesLoading, isError } = useFetchCategoriesQuery();
@@ -59,7 +72,9 @@ const HomePage = () => {
   });
 
   useEffect(() => {
-    checkUserLocation();
+    if (locationStatus === 'checking') {
+      checkUserLocation();
+    }
   }, []);
 
   useEffect(() => {
@@ -80,6 +95,7 @@ const HomePage = () => {
   };
 
   const checkUserLocation = () => {
+    setLocationStatus('checking');
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
         async (position) => {
@@ -88,29 +104,35 @@ const HomePage = () => {
               latitude: position.coords.latitude,
               longitude: position.coords.longitude
             }).unwrap();
-            setIsLocationAllowed(result.isAllowed);
+            const newStatus = result.isAllowed ? 'allowed' : 'unavailable';
+            setLocationStatus(newStatus);
+            localStorage.setItem('locationStatus', newStatus);
           } catch (error) {
             console.error('Error checking location:', error);
-            setIsLocationAllowed(false);
+            setLocationStatus('unavailable');
+            localStorage.setItem('locationStatus', 'unavailable');
           }
         },
         (error) => {
           console.error('Error getting location:', error);
-          setIsLocationAllowed(false);
+          setLocationStatus('unavailable');
+          localStorage.setItem('locationStatus', 'unavailable');
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 0
         }
       );
     } else {
       console.error('Geolocation is not supported by this browser.');
-      setIsLocationAllowed(false);
+      setLocationStatus('unavailable');
+      localStorage.setItem('locationStatus', 'unavailable');
     }
   };
 
-  if (isLocationAllowed === null) {
-    return <LocationCheck status="checking" />;
-  }
-
-  if (!isLocationAllowed) {
-    return <LocationCheck status="unavailable" />;
+  if (locationStatus === 'checking' || locationStatus === 'unavailable') {
+    return <LocationCheck status={locationStatus} onRetry={checkUserLocation} />;
   }
 
   const handleCategoryClick = (categoryId) => {
