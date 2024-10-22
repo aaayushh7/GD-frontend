@@ -88,7 +88,7 @@ const OrderItem = React.memo(({ order }) => (
           <p className="text-xs text-gray-500">Order ID: {order._id.slice(-8)}</p>
         </div>
         <div className="text-right">
-          <p className="font-bold text-yellow-400">${order.totalPrice.toFixed(2)}</p>
+          <p className="font-bold text-yellow-400">₹{order.totalPrice.toFixed(2)}</p>
           <p className="text-xs text-gray-500">
             {new Date(order.createdAt).toLocaleDateString()}
           </p>
