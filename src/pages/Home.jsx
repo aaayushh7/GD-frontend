@@ -10,8 +10,36 @@ import { MdLocationOn } from "react-icons/md";
 import imagePlaceholder from '../assets/12.png';
 import ProductCard from "./Products/ProductCard";
 import { useCheckLocationMutation } from '../redux/api/apiSlice';
-import bucketLogo from '../assets/logobucket.png'; // Import the image
+import bucketLogo from '../assets/logobucket.png';
 
+// Skeleton Components
+const SkeletonLoader = {
+  Category: () => (
+    <div className="flex flex-col items-center w-24">
+      <div className="w-20 h-20 bg-gray-200 rounded-full mb-2 animate-pulse"></div>
+      <div className="h-4 w-16 bg-gray-200 rounded animate-pulse"></div>
+    </div>
+  ),
+  
+  ShopCategory: () => (
+    <div className="h-16 bg-gray-200 rounded-xl animate-pulse mb-4"></div>
+  ),
+  
+  Product: () => (
+    <div className="bg-white rounded-xl shadow-md overflow-hidden h-[7.5rem] border border-gray-200 p-3 animate-pulse">
+      <div className="flex">
+        <div className="w-[60%] pr-2 space-y-2">
+          <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+          <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+          <div className="h-3 bg-gray-200 rounded w-1/4"></div>
+        </div>
+        <div className="w-[40%] flex items-center justify-center">
+          <div className="w-20 h-20 bg-gray-200 rounded"></div>
+        </div>
+      </div>
+    </div>
+  )
+};
 
 const LocationCheck = ({ status, onRetry }) => (
   <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-bl from-yellow-200 to-yellow-500">
@@ -70,7 +98,7 @@ const HomePage = () => {
   });
   const [checkLocation] = useCheckLocationMutation();
 
-  const { data: categories, isLoading: isCategoriesLoading, isError } = useFetchCategoriesQuery();
+  const { data: categories, isLoading: isCategoriesLoading } = useFetchCategoriesQuery();
   const { data: allProducts, isLoading: isLoadingProducts } = useAllProductsQuery(undefined, {
     skip: !shouldFetchProducts
   });
@@ -97,8 +125,6 @@ const HomePage = () => {
       setDisplayedProducts(products);
     }
   };
-
-  
 
   const handleBannerClick = () => {
     if (categories && categories.length >= 4) {
@@ -165,38 +191,12 @@ const HomePage = () => {
     setSearchQuery(e.target.value);
   };
 
-  const SkeletonCategory = () => (
-    <div className="flex flex-col items-center animate-pulse">
-      <div className="w-20 h-20 bg-gray-200 rounded-full mb-2"></div>
-      <div className="h-4 bg-gray-200 rounded w-16"></div>
-    </div>
-  );
-
-  const SkeletonShopCategory = () => (
-    <div className="h-16 bg-gray-200 rounded-xl animate-pulse"></div>
-  );
-
-  const SkeletonProductCard = () => (
-    <div className="bg-white rounded-xl shadow-md overflow-hidden h-[7.5rem] border border-gray-200 p-3 animate-pulse">
-      <div className="flex">
-        <div className="w-[60%] pr-2">
-          <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-          <div className="h-3 bg-gray-200 rounded w-1/2 mb-2"></div>
-          <div className="h-3 bg-gray-200 rounded w-1/4"></div>
-        </div>
-        <div className="w-[40%] flex items-center justify-center">
-          <div className="w-20 h-20 bg-gray-200 rounded"></div>
-        </div>
-      </div>
-    </div>
-  );
-
   const renderRegionalFoods = () => {
-    if (!categories) return null;
+    if (!categories && !isCategoriesLoading) return null;
     
     const regionalCategories = showAllRegional 
-      ? categories.slice(0, 8)
-      : categories.slice(0, 7);
+      ? categories?.slice(0, 8)
+      : categories?.slice(0, 7);
     
     return (
       <div className="mb-8">
@@ -210,20 +210,20 @@ const HomePage = () => {
           </button>
         </div>
         <div className="overflow-x-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-        <style>
-          {`
-            .overflow-x-auto::-webkit-scrollbar {
-              display: none;
-            }
-          `}
-        </style>
+          <style>
+            {`
+              .overflow-x-auto::-webkit-scrollbar {
+                display: none;
+              }
+            `}
+          </style>
           <div className={`grid grid-rows-2 grid-flow-col gap-4 ${showAllRegional ? 'grid-cols-3' : ''}`}
                style={{ minWidth: showAllRegional ? '100%' : 'auto' }}>
             {isCategoriesLoading
-              ? [...Array(showAllRegional ? 8 : 6)].map((_, index) => (
-                  <SkeletonCategory key={`skeleton-regional-${index}`} />
+              ? Array(8).fill(null).map((_, index) => (
+                  <SkeletonLoader.Category key={`skeleton-regional-${index}`} />
                 ))
-              : regionalCategories.map((category) => (
+              : regionalCategories?.map((category) => (
                   <motion.div
                     key={category._id}
                     whileHover={{ scale: 1.05 }}
@@ -244,17 +244,16 @@ const HomePage = () => {
   };
 
   const renderShopCategories = () => {
-    if (!categories) return null;
+    if (!categories && !isCategoriesLoading) return null;
 
     const shopCategories = showAllShop 
-      ? categories.slice(6)
-      : categories.slice(6, 9);
+      ? categories?.slice(6)
+      : categories?.slice(6, 9);
     
     const gradients = [
       'from-[#1f6944] to-[#cdd5c0]',
       'from-[#ff8027] to-[#cdd5c0]',
       'from-[#ff3e3e] to-[#cdd5c0]'
-      // bg-gradient-to-r from-[#1f6944] to-[#cdd5c0]
     ];
 
     return (
@@ -270,10 +269,10 @@ const HomePage = () => {
         </div>
         <div className="space-y-4">
           {isCategoriesLoading
-            ? [...Array(showAllShop ? categories.length - 6 : 3)].map((_, index) => (
-                <SkeletonShopCategory key={`skeleton-shop-${index}`} />
+            ? Array(3).fill(null).map((_, index) => (
+                <SkeletonLoader.ShopCategory key={`skeleton-shop-${index}`} />
               ))
-            : shopCategories.map((category, index) => (
+            : shopCategories?.map((category, index) => (
                 <motion.div
                   key={category._id}
                   whileHover={{ scale: 1.02 }}
@@ -296,8 +295,8 @@ const HomePage = () => {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         <AnimatePresence>
-          {isLoadingProducts || !allProducts
-            ? [...Array(8)].map((_, index) => (
+          {isLoadingProducts
+            ? Array(8).fill(null).map((_, index) => (
                 <motion.div
                   key={`skeleton-${index}`}
                   initial={{ opacity: 0, y: 20 }}
@@ -305,7 +304,7 @@ const HomePage = () => {
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <SkeletonProductCard />
+                  <SkeletonLoader.Product />
                 </motion.div>
               ))
             : displayedProducts.map((product) => (
@@ -326,22 +325,20 @@ const HomePage = () => {
 
   return (
     <div className="min-h-screen bg-[#FDF7E4]">
-      {/* Header */}
       <header className="px-4 py-3 mb-5 border-b border-gray-200 shadow-sm">
         <div className="flex items-center justify-between mb-3 mt-2">
           <FaBars className="text-xl cursor-pointer text-gray-500" />
           <h1 className="text-2xl font-bold">
-          <img 
-            src={bucketLogo} 
-            alt="Bucket Logo" 
-            className="h-8 w-auto bg-gradient-to-r from-green-500 to-orange-500 bg-clip-text text-transparent" 
-          />
-        </h1>
+            <img 
+              src={bucketLogo} 
+              alt="Bucket Logo" 
+              className="h-8 w-auto bg-gradient-to-r from-green-500 to-orange-500 bg-clip-text text-transparent" 
+            />
+          </h1>
           <FaUser className="text-xl cursor-pointer text-green-800" />
         </div>
       </header>
 
-      {/* Search Bar */}
       <div className="px-4 mb-6">
         <div className="relative w-full">
           {isSearchExpanded ? (
@@ -355,7 +352,7 @@ const HomePage = () => {
                 value={searchQuery}
                 onChange={handleSearch}
                 placeholder="What do you want to eat?"
-                className="w-full pl-10 pr-4 py-1 rounded-xl  border-[1px] border-[#afd1b2] bg-[#FFF6E3] focus:border-gray-400 transition-colors"
+                className="w-full pl-10 pr-4 py-1 rounded-xl border-[1px] border-[#afd1b2] bg-[#FFF6E3] focus:border-gray-400 transition-colors"
               />
               <button
                 onClick={toggleSearch}
@@ -363,7 +360,7 @@ const HomePage = () => {
               >
                 <FaTimes />
               </button>
-            </motion.div>
+              </motion.div>
           ) : (
             <motion.div
               initial={{ opacity: 0 }}
@@ -375,7 +372,7 @@ const HomePage = () => {
                 type="text"
                 placeholder="What do you want to eat?"
                 onClick={toggleSearch}
-                className="w-full pl-10 pr-4 py-1 rounded-xl  border-[1px] border-[#afd1b2] bg-[#FFF6E3] focus:border-gray-400 transition-colors cursor-pointer"
+                className="w-full pl-10 pr-4 py-1 rounded-xl border-[1px] border-[#afd1b2] bg-[#FFF6E3] focus:border-gray-400 transition-colors cursor-pointer"
                 readOnly
               />
             </motion.div>
@@ -383,7 +380,6 @@ const HomePage = () => {
         </div>
       </div>
 
-      {/* Offer Banner */}
       {!isSearchExpanded && (
         <div className="px-4 mb-8">
           <div className="bg-gradient-to-r from-[#1f6944] to-[#cdd5c0] rounded-md p-4 text-white">
@@ -398,7 +394,7 @@ const HomePage = () => {
           </div>
         </div>
       )}
-      {/* Main Content */}
+
       <main className="px-4 pb-8">
         {isSearchExpanded ? (
           <>
