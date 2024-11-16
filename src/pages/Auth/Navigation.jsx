@@ -123,7 +123,7 @@ const Navigation = () => {
           setActiveItem(to);
         }}
       >
-        <Icon className={`text-2xl mb-1 ${isActive ? 'fill-[#facc15]' : ''}`} />
+        <Icon className={`text-2xl mb-1 ${isActive ? 'fill-[#009b46]' : ''}`} />
         <span className="text-xs">{label}</span>
         {label === "Cart" && cartItems.length > 0 && (
           <span className="absolute top-1 right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
@@ -197,7 +197,7 @@ const Navigation = () => {
           </div>
         </div>
       )}
-      <nav className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-[#f8dd63] backdrop-blur-md to-white shadow-lg rounded-t-xl border-t-1 border-yellow-400">
+      <nav className="fixed bottom-1 left-0 right-0 bg-[#ffffff] shadow-lg rounded-full ">
   <div className="container mx-auto px-4">
     <div className="flex justify-between items-center py-2">
       {navItems.map((item) => (

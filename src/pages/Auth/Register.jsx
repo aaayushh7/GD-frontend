@@ -5,9 +5,9 @@ import { useRegisterMutation, useGoogleSignUpMutation } from "../../redux/api/us
 import { setCredentials } from "../../redux/features/auth/authSlice";
 import { toast } from "react-toastify";
 import { motion } from "framer-motion";
-import { PizzaIcon, LockIcon, MailIcon, UserIcon } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import { useGoogleLogin } from '@react-oauth/google';
-import  GoogleIcon from "../../assets/googleLogo"
+import GoogleIcon from "../../assets/googleLogo";
 
 const Register = () => {
   const [username, setName] = useState("");
@@ -65,16 +65,11 @@ const Register = () => {
         }
 
         const userInfo = await userInfoResponse.json();
-
-        console.log("Google User Info:", userInfo); // Debugging log
-
-        const res = await googleSignUp({
+        const res = await googleSignUp({ 
           googleId: userInfo.sub,
           email: userInfo.email,
           name: userInfo.name
         }).unwrap();
-
-        console.log("Google Sign Up Response:", res); // Debugging log
 
         dispatch(setCredentials({ ...res }));
         navigate(redirect);
@@ -91,128 +86,124 @@ const Register = () => {
   });
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-yellow-300 to-yellow-500 p-4">
-      <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.3 }}
-        className="w-full max-w-md bg-white p-8 rounded-2xl shadow-lg transform hover:scale-105 transition-transform duration-300"
-      >
-        <div className="flex justify-center mb-6">
-          <PizzaIcon size={48} className="text-yellow-500" />
-        </div>
-        <h1 className="text-3xl font-bold text-center text-gray-800 mb-6">Join Our Food Family!</h1>
+    <div className="min-h-screen bg-[#FFF6E3]">
+      {/* Navigation Bar */}
+      <div className="flex items-center px-4 py-4 border-b border-gray-200">
+        <button onClick={() => navigate(-1)} className="p-2">
+          <ChevronLeft size={24} className="text-[#222]" />
+        </button>
+        <h1 className="flex-1 text-center text-lg font-bold text-[#222]">Register</h1>
+        <div className="w-10"></div> {/* Spacer for centering */}
+      </div>
 
-        <form onSubmit={submitHandler}>
-          <div className="mb-4">
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-              Name
-            </label>
-            <div className="relative">
-              <UserIcon className="absolute top-3 left-3 text-gray-400" size={20} />
-              <input
-                type="text"
-                id="name"
-                className="pl-10 w-full p-3 border-2 border-yellow-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-all duration-300"
-                placeholder="Enter your name"
-                value={username}
-                onChange={(e) => setName(e.target.value)}
-              />
-            </div>
+      <div className="px-6 pt-8">
+        <form onSubmit={submitHandler} className="space-y-6">
+
+          {/* Name Input */}
+          <div>
+          <h3 className="flex-1 text-md  text-gray-500 mb-2">Name</h3>
+
+            <input
+              type="text"
+              id="name"
+              className="w-full h-[40px] px-4 rounded-lg border-[1px] border-[#afd1b2] bg-[#FFF6E3] text-[14px] placeholder-gray-400 focus:outline-none focus:border-[#DAF5DC] focus:ring-1 focus:ring-[#DAF5DC]"
+              placeholder="Text your name"
+              value={username}
+              onChange={(e) => setName(e.target.value)}
+              required
+            />
           </div>
 
-          <div className="mb-4">
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-              Email Address
-            </label>
-            <div className="relative">
-              <MailIcon className="absolute top-3 left-3 text-gray-400" size={20} />
-              <input
-                type="email"
-                id="email"
-                className="pl-10 w-full p-3 border-2 border-yellow-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-all duration-300"
-                placeholder="youremail@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
+          {/* Email Input */}
+          <div>
+          <h3 className="flex-1 text-md  text-gray-500 mb-2">Email</h3>
+
+            <input
+              type="email"
+              id="email"
+              className="w-full h-[40px] px-4 rounded-lg border-[1px] border-[#afd1b2] bg-[#FFF6E3] text-[14px] placeholder-gray-400 focus:outline-none focus:border-[#DAF5DC] focus:ring-1 focus:ring-[#DAF5DC]"
+              placeholder="Text your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
           </div>
 
-          <div className="mb-4">
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-              Password
-            </label>
-            <div className="relative">
-              <LockIcon className="absolute top-3 left-3 text-gray-400" size={20} />
-              <input
-                type="password"
-                id="password"
-                className="pl-10 w-full p-3 border-2 border-yellow-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-all duration-300"
-                placeholder="Create a password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
+          {/* Password Input */}
+          <div>
+          <h3 className="flex-1 text-md  text-gray-500 mb-2">Password</h3>
+
+            <input
+              type="password"
+              id="password"
+              className="w-full h-[40px] px-4 rounded-lg border-[1px] border-[#afd1b2] bg-[#FFF6E3] text-[14px] placeholder-gray-400 focus:outline-none focus:border-[#DAF5DC] focus:ring-1 focus:ring-[#DAF5DC]"
+              placeholder="Text your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
           </div>
 
-          <div className="mb-6">
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
-              Confirm Password
-            </label>
-            <div className="relative">
-              <LockIcon className="absolute top-3 left-3 text-gray-400" size={20} />
-              <input
-                type="password"
-                id="confirmPassword"
-                className="pl-10 w-full p-3 border-2 border-yellow-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-all duration-300"
-                placeholder="Confirm your password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-              />
-            </div>
+          {/* Confirm Password Input */}
+          <div>
+          <h3 className="flex-1 text-md  text-gray-500 mb-2">Confirm Password</h3>
+
+            <input
+              type="password"
+              id="confirmPassword"
+              className="w-full h-[40px] px-4 rounded-lg border-[1px] border-[#afd1b2] bg-[#FFF6E3] text-[14px] placeholder-gray-400 focus:outline-none focus:border-[#DAF5DC] focus:ring-1 focus:ring-[#DAF5DC]"
+              placeholder="Confirm your password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+            />
           </div>
 
+          {/* Register Button */}
           <button
             disabled={isLoading}
             type="submit"
-            className="w-full bg-yellow-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-yellow-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-opacity-50 transform hover:-translate-y-1 active:translate-y-0"
+            className="w-full mx-auto h-[40px] bg-[#f97f34] text-white font-bold rounded-[10px] flex items-center justify-center"
           >
             {isLoading ? (
               <motion.div
                 animate={{ rotate: 360 }}
                 transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                className="w-6 h-6 border-2 border-white border-t-transparent rounded-full mx-auto"
+                className="w-6 h-6 border-2 border-white border-t-transparent rounded-full"
               />
             ) : (
-              "Create Account"
+              "Register"
             )}
           </button>
-        </form>
 
-        <div className="mt-4">
+          {/* Or Separator */}
+          <div className="flex items-center justify-center space-x-4">
+            <div className="flex-1 h-px bg-[#E5E5E5]"></div>
+            <span className="text-sm font-bold text-gray-500">Or</span>
+            <div className="flex-1 h-px bg-[#E5E5E5]"></div>
+          </div>
+
+          {/* Google Button */}
           <button
             onClick={handleGoogleSignUp}
             disabled={isGoogleSignUpLoading}
-            className="w-full bg-white text-gray-700 gap-2 font-bold py-3 px-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-opacity-50 flex items-center justify-center"
+            className="w-full mx-auto h-[40px] bg-white border border-[#E5E5E5] text-[#222] rounded-[10px] flex items-center justify-center space-x-2"
           >
-            {/* <img src={GoogleIcon} alt="Google" className="w-5 h-5 mr-2" /> */}
-            <GoogleIcon/>
-            {isGoogleSignUpLoading ? "Loading..." : "Sign up with Google"}
+            <GoogleIcon />
+            <span>Continue with Google</span>
           </button>
-        </div>
 
-        <div className="mt-6 text-center">
-          <p className="text-gray-600">
-            Already have an account?{" "}
+          {/* Login Link */}
+          <div className="text-center pt-4">
             <Link
               to={redirect ? `/login?redirect=${redirect}` : "/login"}
-              className="text-yellow-500 hover:underline font-semibold"
+              className="text-[15px] text-gray-500 hover:underline"
             >
-              Sign In
+              Already have an account? <span className="text-[#f97f34]">Log In</span>
             </Link>
-          </p>
-        </div>
-      </motion.div>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };

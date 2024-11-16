@@ -5,16 +5,16 @@ import { useLoginMutation, useGoogleSignUpMutation } from "../../redux/api/users
 import { setCredentials } from "../../redux/features/auth/authSlice";
 import { toast } from "react-toastify";
 import { motion } from "framer-motion";
-import { PizzaIcon, LockIcon, MailIcon } from "lucide-react";
+import { ArrowLeft, Check, ChevronLeft } from "lucide-react";
 import { useGoogleLogin } from '@react-oauth/google';
-import  GoogleIcon from "../../assets/googleLogo"
-
+import GoogleIcon from "../../assets/googleLogo";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -23,7 +23,6 @@ const Login = () => {
 
   const { userInfo } = useSelector((state) => state.auth);
   const [googleSignUp, { isLoading: isGoogleSignUpLoading }] = useGoogleSignUpMutation();
-
 
   const { search } = useLocation();
   const sp = new URLSearchParams(search);
@@ -47,11 +46,11 @@ const Login = () => {
     try {
       const loginPromise = login({ email, password }).unwrap();
       const res = await Promise.race([loginPromise, timeoutPromise]);
-
+      
       if (res.error) {
         throw new Error(res.error);
       }
-
+      
       dispatch(setCredentials({ ...res }));
       navigate(redirect);
     } catch (err) {
@@ -69,6 +68,7 @@ const Login = () => {
       setIsSubmitting(false);
     }
   };
+
   const handleGoogleSignUp = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       try {
@@ -83,16 +83,11 @@ const Login = () => {
         }
 
         const userInfo = await userInfoResponse.json();
-
-        console.log("Google User Info:", userInfo); // Debugging log
-
-        const res = await googleSignUp({
+        const res = await googleSignUp({ 
           googleId: userInfo.sub,
           email: userInfo.email,
           name: userInfo.name
         }).unwrap();
-
-        console.log("Google Sign Up Response:", res); // Debugging log
 
         dispatch(setCredentials({ ...res }));
         navigate(redirect);
@@ -109,98 +104,114 @@ const Login = () => {
   });
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-yellow-300 to-yellow-500 p-4">
-      <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.3 }}
-        className="w-full max-w-md bg-white p-8 rounded-2xl shadow-lg transform hover:scale-105 transition-transform duration-300"
-      >
-        <div className="flex justify-center mb-6">
-          <PizzaIcon size={48} className="text-yellow-500" />
-        </div>
-        <h1 className="text-3xl font-bold text-center text-gray-800 mb-6">Welcome Back!</h1>
+    <div className="min-h-screen bg-[#FFF6E3]">
+      {/* Navigation Bar */}
+      <div className="flex items-center px-4 py-4 border-b border-gray-200">
+        <button onClick={() => navigate(-1)} className="p-2">
+          <ChevronLeft size={24} className="text-[#222]" />
+        </button>
+        <h1 className="flex-1 text-center text-2xl text-[#222]">Log In</h1>
+        <div className="w-10"></div> {/* Spacer for centering */}
+      </div>
 
-        <form onSubmit={submitHandler}>
-          <div className="mb-4">
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-              Email Address
-            </label>
-            <div className="relative">
-              <MailIcon className="absolute top-3 left-3 text-gray-400" size={20} />
-              <input
-                type="email"
-                id="email"
-                className="pl-10 w-full p-3 border-2 border-yellow-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-all duration-300"
-                placeholder="youremail@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
+      <div className="px-6 pt-9">
+      <h3 className="flex-1 text-md  text-gray-500 mb-2">Email</h3>
+        <form onSubmit={submitHandler} className="space-y-6">
+        
+          {/* Email Input */}
+          <div>
+            <input
+              type="email"
+              id="email"
+              className="w-full h-[45px] px-4 rounded-xl border-[1px] border-[#afd1b2] bg-[#FFF6E3] text-[14px] placeholder-gray-400 focus:outline-none focus:border-[#DAF5DC] focus:ring-1 focus:ring-[#DAF5DC]"
+              placeholder="Text your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
           </div>
 
-          <div className="mb-6">
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-              Password
+          {/* Password Input */}
+          <div>
+          <h3 className="flex-1 text-md  text-gray-500 mb-2">Password</h3>
+            <input
+              type="password"
+              id="password"
+              className="w-full h-[45px] px-4 rounded-xl border-[1px] border-[#afd1b2] bg-[#FFF6E3] text-[14px] placeholder-gray-400 focus:outline-none focus:border-[#DAF5DC] focus:ring-1 focus:ring-[#DAF5DC]"
+              placeholder="Text your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+
+          {/* Remember Me and Forgot Password */}
+          <div className="flex justify-between items-center">
+            <label className="flex items-center space-x-2 cursor-pointer">
+              <div 
+                className={`w-5 h-5 rounded border flex items-center justify-center ${
+                  rememberMe ? 'bg-[#FFB84D] border-[#FFB84D]' : 'border-gray-300'
+                }`}
+                onClick={() => setRememberMe(!rememberMe)}
+              >
+                {rememberMe && <Check size={14} className="text-white" />}
+              </div>
+              <span className="text-sm text-gray-600">Remember me</span>
             </label>
-            <div className="relative">
-              <LockIcon className="absolute top-3 left-3 text-gray-400" size={20} />
-              <input
-                type="password"
-                id="password"
-                className="pl-10 w-full p-3 border-2 border-yellow-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-all duration-300"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
+            <Link to="/forgot-password" className="text-sm text-gray-500 hover:underline">
+              Forgot Password?
+            </Link>
           </div>
 
           {loginError && (
-            <div className="mb-4 text-red-500 text-sm text-center">{loginError}</div>
+            <div className="text-red-500 text-sm text-center">{loginError}</div>
           )}
 
+          {/* Login Button */}
           <button
             disabled={isSubmitting}
             type="submit"
-            className="w-full bg-yellow-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-yellow-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-opacity-50 transform hover:-translate-y-1 active:translate-y-0"
+            className="w-full mx-auto h-[40px] bg-[#f97f34] text-white font-bold rounded-[10px] flex items-center justify-center"
           >
             {isSubmitting ? (
               <motion.div
                 animate={{ rotate: 360 }}
                 transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                className="w-6 h-6 border-2 border-white border-t-transparent rounded-full mx-auto"
+                className="w-6 h-6 border-2 border-white border-t-transparent rounded-full"
               />
             ) : (
-              "Sign In"
+              "Log In"
             )}
           </button>
-        </form>
-        <div className="mt-4">
+
+          {/* Or Separator */}
+          <div className="flex items-center justify-center space-x-4">
+            <div className="flex-1 h-px bg-[#E5E5E5]"></div>
+            <span className="text-sm font-bold text-gray-500">Or</span>
+            <div className="flex-1 h-px bg-[#E5E5E5]"></div>
+          </div>
+
+          {/* Google Button */}
           <button
             onClick={handleGoogleSignUp}
             disabled={isGoogleSignUpLoading}
-            className="w-full bg-white text-gray-700 gap-2 font-bold py-3 px-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-opacity-50 flex items-center justify-center"
+            className="w-full mx-auto h-[40px] bg-[#FFF6E3] border border-gray-300 text-[#222] rounded-[10px] flex items-center justify-center space-x-2"
           >
-            <GoogleIcon/>
-            {isGoogleSignUpLoading ? "Loading..." : "Sign in with Google"}
+            <GoogleIcon />
+            <span>Continue with Google</span>
           </button>
-        </div>
 
-        <div className="mt-6 text-center">
-          <p className="text-gray-600">
-            New to our app?{" "}
+          {/* Register Link */}
+          <div className="text-center">
             <Link
               to={redirect ? `/register?redirect=${redirect}` : "/register"}
-              className="text-yellow-500 hover:underline font-semibold"
+              className="text-[16px] text-gray-500 hover:underline"
             >
-              Create an account
+              Don't have an account? <span className="text-green-600">Register</span>
             </Link>
-          </p>
-        </div>
-      </motion.div>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };

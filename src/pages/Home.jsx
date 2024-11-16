@@ -5,11 +5,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { setChecked } from '../redux/features/shop/shopSlice';
 import { useFetchCategoriesQuery } from '../redux/api/categoryApiSlice';
 import { useAllProductsQuery } from "../redux/api/productApiSlice";
-import { FaSearch, FaTimes } from "react-icons/fa";
+import { FaSearch, FaBars, FaUser, FaTimes } from "react-icons/fa";
 import { MdLocationOn } from "react-icons/md";
 import imagePlaceholder from '../assets/12.png';
 import ProductCard from "./Products/ProductCard";
 import { useCheckLocationMutation } from '../redux/api/apiSlice';
+import bucketLogo from '../assets/logobucket.png'; // Import the image
+
 
 const LocationCheck = ({ status, onRetry }) => (
   <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-bl from-yellow-200 to-yellow-500">
@@ -60,6 +62,8 @@ const HomePage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [displayedProducts, setDisplayedProducts] = useState([]);
   const [shouldFetchProducts, setShouldFetchProducts] = useState(false);
+  const [showAllRegional, setShowAllRegional] = useState(false);
+  const [showAllShop, setShowAllShop] = useState(false);
   const [locationStatus, setLocationStatus] = useState(() => {
     const storedStatus = localStorage.getItem('locationStatus');
     return storedStatus || 'checking';
@@ -91,6 +95,15 @@ const HomePage = () => {
       setDisplayedProducts(filtered);
     } else {
       setDisplayedProducts(products);
+    }
+  };
+
+  
+
+  const handleBannerClick = () => {
+    if (categories && categories.length >= 4) {
+      dispatch(setChecked([categories[3]._id]));
+      navigate('/shop');
     }
   };
 
@@ -153,14 +166,14 @@ const HomePage = () => {
   };
 
   const SkeletonCategory = () => (
-    <div className="bg-gray-100 rounded-lg border shadow-lg p-6 animate-pulse">
-      <div className="text-center">
-        <div className="flex items-center justify-center">
-          <div className="w-12 h-12 bg-gray-300 rounded-full mb-2"></div>
-        </div>
-        <div className="h-5 bg-gray-300 rounded w-3/4 mx-auto"></div>
-      </div>
+    <div className="flex flex-col items-center animate-pulse">
+      <div className="w-20 h-20 bg-gray-200 rounded-full mb-2"></div>
+      <div className="h-4 bg-gray-200 rounded w-16"></div>
     </div>
+  );
+
+  const SkeletonShopCategory = () => (
+    <div className="h-16 bg-gray-200 rounded-xl animate-pulse"></div>
   );
 
   const SkeletonProductCard = () => (
@@ -178,49 +191,103 @@ const HomePage = () => {
     </div>
   );
 
-  const renderCategories = () => {
-    if (isError) {
-      return (
-        <div className="text-2xl text-red-600 text-center">
-          Error loading categories
-        </div>
-      );
-    }
+  const renderRegionalFoods = () => {
+    if (!categories) return null;
+    
+    const regionalCategories = showAllRegional 
+      ? categories.slice(0, 8)
+      : categories.slice(0, 7);
+    
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-        <AnimatePresence>
+      <div className="mb-8">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-sm text-gray-600">Regional Foods</h2>
+          <button 
+            onClick={() => setShowAllRegional(!showAllRegional)}
+            className="text-green-600 text-sm font-medium"
+          >
+            {showAllRegional ? 'Show Less' : 'See All'}
+          </button>
+        </div>
+        <div className="overflow-x-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        <style>
+          {`
+            .overflow-x-auto::-webkit-scrollbar {
+              display: none;
+            }
+          `}
+        </style>
+          <div className={`grid grid-rows-2 grid-flow-col gap-4 ${showAllRegional ? 'grid-cols-3' : ''}`}
+               style={{ minWidth: showAllRegional ? '100%' : 'auto' }}>
+            {isCategoriesLoading
+              ? [...Array(showAllRegional ? 8 : 6)].map((_, index) => (
+                  <SkeletonCategory key={`skeleton-regional-${index}`} />
+                ))
+              : regionalCategories.map((category) => (
+                  <motion.div
+                    key={category._id}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => handleCategoryClick(category._id)}
+                    className={`flex flex-col items-center ${!showAllRegional ? 'w-24' : ''}`}
+                  >
+                    <div className="w-20 h-20 rounded-full bg-white border border-gray-200 flex items-center justify-center shadow-md hover:shadow-md transition-all">
+                      <img src={imagePlaceholder} alt={category.name} className="w-12 h-12 object-cover"/>
+                    </div>
+                    <p className="mt-2 text-xs text-center font-medium text-gray-500">{category.name}</p>
+                  </motion.div>
+                ))}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderShopCategories = () => {
+    if (!categories) return null;
+
+    const shopCategories = showAllShop 
+      ? categories.slice(6)
+      : categories.slice(6, 9);
+    
+    const gradients = [
+      'from-[#1f6944] to-[#cdd5c0]',
+      'from-[#ff8027] to-[#cdd5c0]',
+      'from-[#ff3e3e] to-[#cdd5c0]'
+      // bg-gradient-to-r from-[#1f6944] to-[#cdd5c0]
+    ];
+
+    return (
+      <div className="mb-8">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-sm text-gray-500">Shop ur things</h2>
+          <button 
+            onClick={() => setShowAllShop(!showAllShop)}
+            className="text-green-600 text-sm font-medium"
+          >
+            {showAllShop ? 'Show Less' : 'See All'}
+          </button>
+        </div>
+        <div className="space-y-4">
           {isCategoriesLoading
-            ? [...Array(10)].map((_, index) => (
-                <motion.div
-                  key={`skeleton-${index}`}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
-                >
-                  <SkeletonCategory />
-                </motion.div>
+            ? [...Array(showAllShop ? categories.length - 6 : 3)].map((_, index) => (
+                <SkeletonShopCategory key={`skeleton-shop-${index}`} />
               ))
-            : categories.map((category) => (
+            : shopCategories.map((category, index) => (
                 <motion.div
                   key={category._id}
-                  layout
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8, x: "-100%" }}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="bg-gray-100 rounded-lg border shadow-lg p-6 cursor-pointer transition-all duration-300 hover:shadow-xl"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={() => handleCategoryClick(category._id)}
+                  className={`bg-gradient-to-r ${gradients[index % 3]} rounded-xl p-4 cursor-pointer text-white`}
                 >
-                  <div className="text-center">
-                    <div className="flex items-center">
-                      <img src={imagePlaceholder} alt="category" className="w-12 h-12 object-cover justify-center items-center ml-8 mb-2" />
-                    </div>
-                    <h3 className="text-xl font-medium text-gray-800">{category.name}</h3>
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-medium">{category.name}</h3>
+                    <img src={imagePlaceholder} alt={category.name} className="w-12 h-12 object-cover rounded"/>
                   </div>
                 </motion.div>
               ))}
-        </AnimatePresence>
+        </div>
       </div>
     );
   };
@@ -258,52 +325,81 @@ const HomePage = () => {
   };
 
   return (
-    <motion.div
-      className="min-h-screen bg-white"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-    >
-      <header className="bg-gradient-to-b from-[#ecd388] to-white text-gray-800 py-6 relative">
-        <div className="container mx-auto px-4 flex justify-between items-center">
-          <motion.h1
-            animate={{ fontSize: isSearchExpanded ? '1.25rem' : '1.5rem' }}
-            transition={{ duration: 0.3 }}
-            className="font-bold whitespace-nowrap"
-          >
-            Crave-Hub
-          </motion.h1>
-          <div className="relative flex items-center justify-end">
-            <AnimatePresence>
-              {isSearchExpanded && (
-                <motion.input
-                  initial={{ width: 0, opacity: 0 }}
-                  animate={{ width: '200px', opacity: 1 }}
-                  exit={{ width: 0, opacity: 0 }}
-                  transition={{ duration: 0.3 }}
-                  type="text"
-                  placeholder="Search products..."
-                  value={searchQuery}
-                  onChange={handleSearch}
-                  className="rounded-full border-2 border-yellow-500 focus:outline-none focus:border-yellow-600 text-sm bg-white px-3 py-1 mr-2"
-                />
-              )}
-            </AnimatePresence>
-            <motion.button
-              onClick={toggleSearch}
-              className="bg-yellow-500 text-white p-2 rounded-full focus:outline-none flex-shrink-0"
-              whileTap={{ scale: 0.95 }}
+    <div className="min-h-screen bg-[#FDF7E4]">
+      {/* Header */}
+      <header className="px-4 py-3 mb-5 border-b border-gray-200 shadow-sm">
+        <div className="flex items-center justify-between mb-3 mt-2">
+          <FaBars className="text-xl cursor-pointer text-gray-500" />
+          <h1 className="text-2xl font-bold">
+          <img 
+            src={bucketLogo} 
+            alt="Bucket Logo" 
+            className="h-8 w-auto bg-gradient-to-r from-green-500 to-orange-500 bg-clip-text text-transparent" 
+          />
+        </h1>
+          <FaUser className="text-xl cursor-pointer text-green-800" />
+        </div>
+      </header>
+
+      {/* Search Bar */}
+      <div className="px-4 mb-6">
+        <div className="relative w-full">
+          {isSearchExpanded ? (
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex items-center"
             >
-              {isSearchExpanded ? <FaTimes /> : <FaSearch />}
-            </motion.button>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={handleSearch}
+                placeholder="What do you want to eat?"
+                className="w-full pl-10 pr-4 py-1 rounded-xl  border-[1px] border-[#afd1b2] bg-[#FFF6E3] focus:border-gray-400 transition-colors"
+              />
+              <button
+                onClick={toggleSearch}
+                className="ml-2 p-2 rounded-full bg-green-500 text-white"
+              >
+                <FaTimes />
+              </button>
+            </motion.div>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="relative"
+            >
+              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                placeholder="What do you want to eat?"
+                onClick={toggleSearch}
+                className="w-full pl-10 pr-4 py-1 rounded-xl  border-[1px] border-[#afd1b2] bg-[#FFF6E3] focus:border-gray-400 transition-colors cursor-pointer"
+                readOnly
+              />
+            </motion.div>
+          )}
+        </div>
+      </div>
+
+      {/* Offer Banner */}
+      {!isSearchExpanded && (
+        <div className="px-4 mb-8">
+          <div className="bg-gradient-to-r from-[#1f6944] to-[#cdd5c0] rounded-md p-4 text-white">
+            <h3 className="text-md mb-1 font-bold">Get 10% off on <br/>ur favourites</h3>
+            <p className="text-xs opacity-90 mb-3">On your first purchase. <br/><span className='font-bold'>USE CODE: URFIRST</span></p>
+            <button 
+              onClick={handleBannerClick}
+              className="bg-[#fff5e3] text-green-700 px-4 py-1 rounded-md text-sm font-medium shadow-sm hover:shadow-md transition-shadow"
+            >
+              Buy Now
+            </button>
           </div>
         </div>
-        <div
-          className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-yellow-400 to-transparent"
-          style={{ width: '80%', margin: '0 auto' }}
-        ></div>
-      </header>
-      <main className="container mx-auto px-4 py-8">
+      )}
+      {/* Main Content */}
+      <main className="px-4 pb-8">
         {isSearchExpanded ? (
           <>
             {renderProducts()}
@@ -315,14 +411,12 @@ const HomePage = () => {
           </>
         ) : (
           <>
-            <h2 className="text-3xl font-semibold text-gray-800 mb-8 text-center">
-              Select your taste!
-            </h2>
-            {renderCategories()}
+            {renderRegionalFoods()}
+            {renderShopCategories()}
           </>
         )}
       </main>
-    </motion.div>
+    </div>
   );
 };
 
