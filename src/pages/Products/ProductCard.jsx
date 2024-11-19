@@ -63,7 +63,7 @@ const ProductCard = ({ p }) => {
   };
 
   return (
-    <div className={`bg-white rounded-xl overflow-hidden transition-all duration-300 ease-in-out shadow-sm transform hover:-translate-y-1 flex ${expanded ? 'min-h-[8rem]' : 'h-[8rem]'} border border-gray-100 p-4`}>
+    <div className={`bg-[#FDF7E4] rounded-xl overflow-hidden transition-all duration-300 ease-in-out shadow-sm transform hover:-translate-y-1 flex ${expanded ? 'min-h-[8rem]' : 'h-[8rem]'} border border-[#afd1b2] p-4`}>
       <div className="w-[65%] pr-3 flex flex-col justify-between">
         <div>
           <div className="flex justify-between items-start">
@@ -114,9 +114,9 @@ const ProductCard = ({ p }) => {
         </div>
       </div>
       <div className="w-[35%] relative flex items-center justify-center">
-        <div className="w-24 h-24 relative">
+        <div className="w-24 h-24 relative ">
           <img
-            className="w-full h-full object-cover rounded-xl shadow-sm transition-transform duration-300 ease-in-out hover:scale-105"
+            className="w-full h-full object-cover  rounded-xl border border-[#afd1b2] shadow-sm transition-transform duration-300 ease-in-out hover:scale-105"
             src={p.image}
             alt={p.name}
           />

@@ -70,7 +70,7 @@ const Navigation = () => {
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (expandedAreaRef.current && !expandedAreaRef.current.contains(event.target) &&
-          profileButtonRef.current && !profileButtonRef.current.contains(event.target)) {
+        profileButtonRef.current && !profileButtonRef.current.contains(event.target)) {
         setIsProfileExpanded(false);
       }
     };
@@ -83,9 +83,9 @@ const Navigation = () => {
 
   const navItems = [
     { to: "/", icon: HomeIcon, label: "Home" },
-    { 
-      to: `https://wa.me/916306500300`, 
-      icon: HelpIcon, 
+    {
+      to: `https://wa.me/916306500300`,
+      icon: HelpIcon,
       label: "Help",
       onClick: (e) => {
         e.preventDefault();
@@ -97,15 +97,15 @@ const Navigation = () => {
 
   const dropdownItems = userInfo?.isAdmin
     ? [
-        { to: "/admin/dashboard", icon: AiOutlineDashboard, label: "Dashboard" },
-        { to: "/admin/productlist", icon: AiOutlineInbox, label: "Products" },
-        { to: "/admin/categorylist", icon: AiOutlineUnorderedList, label: "Categories" },
-        { to: "/admin/subcategorylist", icon: AiOutlineUnorderedList, label: "Subcategories" },
-        { to: "/admin/couponlist", icon: AiOutlineTag, label: "Coupons" },
-        { to: "/admin/orderlist", icon: AiOutlineShop, label: "Orders" },
-        { to: "/admin/userlist", icon: AiOutlineTeam, label: "Users" },
-        { onClick: logoutHandler, icon: AiOutlineLogout, label: "Logout" },
-      ]
+      { to: "/admin/dashboard", icon: AiOutlineDashboard, label: "Dashboard" },
+      { to: "/admin/productlist", icon: AiOutlineInbox, label: "Products" },
+      { to: "/admin/categorylist", icon: AiOutlineUnorderedList, label: "Categories" },
+      { to: "/admin/subcategorylist", icon: AiOutlineUnorderedList, label: "Subcategories" },
+      { to: "/admin/couponlist", icon: AiOutlineTag, label: "Coupons" },
+      { to: "/admin/orderlist", icon: AiOutlineShop, label: "Orders" },
+      { to: "/admin/userlist", icon: AiOutlineTeam, label: "Users" },
+      { onClick: logoutHandler, icon: AiOutlineLogout, label: "Logout" },
+    ]
     : [];
 
   const NavItem = ({ to, icon: Icon, label, onClick }) => {
@@ -113,9 +113,8 @@ const Navigation = () => {
     return (
       <Link
         to={to}
-        className={`flex flex-col items-center justify-center px-4 py-2 text-black hover:text-yellow-700 transition-colors duration-300 ${
-          isActive ? 'text-black' : ''
-        }`}
+        className={`flex flex-col items-center justify-center px-4 py-2 text-black hover:text-yellow-700 transition-colors duration-300 ${isActive ? 'text-black' : ''
+          }`}
         onClick={(e) => {
           if (onClick) {
             onClick(e);
@@ -158,17 +157,17 @@ const Navigation = () => {
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50">
       {!userInfo?.isAdmin && userInfo && (
-        <div 
-        ref={expandedAreaRef}
-        className={`fixed inset-x-0 bottom-14 overflow-y-auto transition-all duration-500 ease-in-out 
+        <div
+          ref={expandedAreaRef}
+          className={`fixed inset-x-0 bottom-14 overflow-y-auto transition-all duration-500 ease-in-out 
                     backdrop-blur-lg bg-[#f8f0e0c9]
                     ${isProfileExpanded ? 'h-[calc(100vh-9rem)] opacity-100' : 'h-0 opacity-0'}`}
-        style={{
-          boxShadow: isProfileExpanded ? '0 -4px 6px -1px rgba(0, 0, 0, 0.1), 0 -2px 4px -1px rgba(0, 0, 0, 0.06)' : 'none',
-          borderTopLeftRadius: '1.5rem',
-          borderTopRightRadius: '1.5rem',
-        }}
-      >
+          style={{
+            boxShadow: isProfileExpanded ? '0 -4px 6px -1px rgba(0, 0, 0, 0.1), 0 -2px 4px -1px rgba(0, 0, 0, 0.06)' : 'none',
+            borderTopLeftRadius: '1.5rem',
+            borderTopRightRadius: '1.5rem',
+          }}
+        >
           <div className="w-16 h-1 bg-gray-900  mx-auto mt-3 rounded-full"></div>
           <div className={`${isProfileExpanded ? 'translate-y-0' : 'translate-y-full'} transition-transform duration-500 ease-in-out`}>
             <Profile onClose={() => setIsProfileExpanded(false)} />
@@ -184,11 +183,10 @@ const Navigation = () => {
         </div>
       )}
       {userInfo?.isAdmin && (
-        <div 
+        <div
           ref={dropdownRef}
-          className={`bg-white rounded-t-3xl shadow-lg transition-all pb-9 mb-9 duration-300 ease-in-out overflow-hidden ${
-            dropdownOpen ? 'max-h-[calc(100vh-5rem)]' : 'max-h-0'
-          }`}
+          className={`bg-white rounded-t-3xl shadow-lg transition-all pb-9 mb-9 duration-300 ease-in-out overflow-hidden ${dropdownOpen ? 'max-h-[calc(100vh-5rem)]' : 'max-h-0'
+            }`}
         >
           <div className="py-2 flex flex-col text-black">
             {dropdownItems.map((item, index) => (
@@ -197,27 +195,26 @@ const Navigation = () => {
           </div>
         </div>
       )}
-      <nav className="fixed bottom-1 left-0 right-0 bg-[#ffffff] shadow-lg rounded-full ">
-  <div className="container mx-auto px-4">
-    <div className="flex justify-between items-center py-2">
-      {navItems.map((item) => (
-        <NavItem key={item.to} {...item} isActive={activeItem === item.to} />
-      ))}
-      <div className="relative">
-        <button
-          ref={profileButtonRef}
-          onClick={toggleProfileExpanded}
-          className={`flex flex-col items-center justify-center px-4 py-2 text-gray-800 hover:text-yellow-700 transition-colors duration-300 ${
-            activeItem === "/profile" ? 'text-yellow-700' : ''
-          }`}
-        >
-          <UserIcon className={`mb-1 ${activeItem === "/profile" ? 'text-yellow-700' : ''}`} size={24} />
-          <span className="text-xs font-medium">Profile</span>
-        </button>
-      </div>
-    </div>
-  </div>
-</nav>
+      <nav className="fixed bottom-0 left-0 right-0 bg-white shadow-lg rounded-t-3xl ">
+        <div className="container mx-auto px-4">
+          <div className="flex justify-between items-center py-2">
+            {navItems.map((item) => (
+              <NavItem key={item.to} {...item} isActive={activeItem === item.to} />
+            ))}
+            <div className="relative">
+              <button
+                ref={profileButtonRef}
+                onClick={toggleProfileExpanded}
+                className={`flex flex-col items-center justify-center px-4 py-2 text-gray-800 hover:text-yellow-700 transition-colors duration-300 ${activeItem === "/profile" ? 'text-yellow-700' : ''
+                  }`}
+              >
+                <UserIcon className={`mb-1 ${activeItem === "/profile" ? 'text-yellow-700' : ''}`} size={24} />
+                <span className="text-xs font-medium">Profile</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </nav>
 
     </div>
   );
