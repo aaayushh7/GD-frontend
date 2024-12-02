@@ -1,13 +1,14 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
-import { Link, useLocation } from 'react-router-dom';
-import { IconButton, Badge, Box, Typography } from '@mui/material';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { Box, Typography } from '@mui/material';
 import CartIcon from "../assets/cart";
 
 const CartButton = () => {
   const cartItems = useSelector((state) => state.cart.cartItems);
   const itemCount = cartItems.reduce((acc, item) => acc + item.qty, 0);
   const location = useLocation();
+  const navigate = useNavigate();
 
   // Check if the current route is / or /shop
   const shouldShowCart = ['/', '/shop'].includes(location.pathname);
@@ -16,6 +17,10 @@ const CartButton = () => {
     return null; // Don't render anything if not on / or /shop routes or if cart is empty
   }
 
+  const handleViewCart = () => {
+    navigate('/cart');
+  };
+
   return (
     <Box
       sx={{
@@ -23,61 +28,61 @@ const CartButton = () => {
         bottom: 90,
         left: '50%',
         transform: 'translateX(-50%)',
-        zIndex: 10,
+        zIndex: 90,
         display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: 'rgba(255, 255, 255, 0.9)',
-        borderRadius: '29px',
-        padding: '4px 14px',
-        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+        width: '90%',
+        maxWidth: '400px',
+        borderRadius: '40px',
+        overflow: 'hidden',
+        boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
       }}
     >
-      <Badge
-        badgeContent={itemCount}
-        color="error"
+      <Box
         sx={{
-          '& .MuiBadge-badge': {
-            backgroundColor: '#FF5722', // Orange badge
-            color: '#FFFFFF',
-            fontSize: '0.7rem',
-            minWidth: '18px',
-            height: '18px',
-            padding: '0 4px',
-            top: 2,
-            right: 2,
-          },
+          backgroundColor: '#ff7415', // Orange background
+          flex: 7,
+          display: 'flex',
+          alignItems: 'center',
+          padding: '10px 15px',
+          transition: 'background-color 0.3s ease',
+          '&:hover': {
+            backgroundColor: '#FF8C00', // Slightly darker orange on hover
+          }
         }}
       >
-        <IconButton
-          component={Link}
-          to="/cart"
-          size="small"
+        <CartIcon style={{ marginRight: '10px', color: 'white' }} />
+        <Typography 
           sx={{
-            color: '#FFC107', // Yellow
-            '&:hover': {
-              backgroundColor: 'rgba(255, 193, 7, 0.1)', // Light yellow background on hover
-            },
+            color: '#FFFFFF',
+            fontSize: '14px',
+            fontWeight: 400,
           }}
         >
-          <CartIcon />
-        </IconButton>
-      </Badge>
-      <Typography
-        component={Link}
-        to="/cart"
+          {itemCount} Item{itemCount !== 1 ? 's' : ''} added to the cart
+        </Typography>
+      </Box>
+      
+      <Box
+        onClick={handleViewCart}
         sx={{
-          marginLeft: '8px',
-          color: '#008000', // Yellow text
-          textDecoration: 'none', // Remove underline from link
-          fontWeight: 'bold',
+          backgroundColor: '#ff7415', // Green background
+          flex: 3,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '10px 15px',
+          cursor: 'pointer',
+          transition: 'background-color 0.3s ease',
           '&:hover': {
-            color: '#FFB300', // Slightly darker yellow on hover
-          },
+            backgroundColor: '#004D00', // Slightly lighter green on hover
+          }
         }}
       >
-        View Cart
-      </Typography>
+        <button className='px-3 text-sm py-1 font-semibold bg-[#0d6d3f] rounded-full'>
+          View Cart
+        </button>
+        
+      </Box>
     </Box>
   );
 };

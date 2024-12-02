@@ -116,7 +116,7 @@ const Shop = () => {
   );
 
   return (
-    <div className="min-h-screen bg-[#FDF7E4] relative">
+    <div className="min-h-screen bg-white relative">
       <header className="fixed top-0 left-0 right-0 z-50 px-4 py-3 border-b border-gray-200 shadow-sm bg-[#FDF7E4]">
         <div className="flex items-center justify-between mb-1 mt-2">
           <div>
@@ -141,7 +141,7 @@ const Shop = () => {
         </div>
       </header>
 
-      <div className="fixed top-[5.5rem] left-0 right-0 z-50 px-1 mb-2 bg-[#FDF7E4]">
+      <div className="fixed top-[4.3rem] pt-[1.2rem] left-0 right-0 z-50 px-1 mb-2 bg-white ">
         <div className="relative w-full">
           <motion.div
             initial={{ opacity: 0 }}
@@ -153,7 +153,7 @@ const Shop = () => {
               value={searchQuery}
               onChange={handleSearch}
               placeholder="What do you want to eat?"
-              className="w-full pl-10 pr-4 py-1 rounded-xl border-[1px] border-[#afd1b2] bg-[#FFF6E3] focus:border-gray-400 transition-colors"
+              className="w-full pl-10 pr-4 py-1 rounded-xl border-[1px] border-[#afd1b2] bg-white focus:border-gray-400 transition-colors"
             />
             <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
           </motion.div>
@@ -166,7 +166,7 @@ const Shop = () => {
         onCategorySelect={(categoryId) => dispatch(setChecked([categoryId]))}
       />
 
-      <main className="container mx-auto px-4 py-4 pt-32 pl-20">
+      <main className="container mx-auto px-4 py-4 pt-32 pl-[6rem]">
         {isLoadingSubcategories ? (
           <SubcategorySkeletonLoader />
         ) : (
@@ -200,7 +200,7 @@ const Shop = () => {
           )
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 mt-4">
           <AnimatePresence>
             {isLoadingProducts
               ? [...Array(8)].map((_, index) => (

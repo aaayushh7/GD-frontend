@@ -14,8 +14,10 @@ import AdminMenu from "./AdminMenu";
 const CategoryList = () => {
   const { data: categories } = useFetchCategoriesQuery();
   const [name, setName] = useState("");
+  const [image, setImage] = useState("");
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [updatingName, setUpdatingName] = useState("");
+  const [updatingImage, setUpdatingImage] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
 
   const [createCategory] = useCreateCategoryMutation();
@@ -31,11 +33,12 @@ const CategoryList = () => {
     }
 
     try {
-      const result = await createCategory({ name }).unwrap();
+      const result = await createCategory({ name, image }).unwrap();
       if (result.error) {
         toast.error(result.error);
       } else {
         setName("");
+        setImage("");
         toast.success(`${result.name} is created.`);
       }
     } catch (error) {
@@ -57,6 +60,7 @@ const CategoryList = () => {
         categoryId: selectedCategory._id,
         updatedCategory: {
           name: updatingName,
+          image: updatingImage,
         },
       }).unwrap();
 
@@ -66,6 +70,7 @@ const CategoryList = () => {
         toast.success(`${result.name} is updated`);
         setSelectedCategory(null);
         setUpdatingName("");
+        setUpdatingImage("");
         setModalVisible(false);
       }
     } catch (error) {
@@ -99,8 +104,10 @@ const CategoryList = () => {
           <div className="bg-white rounded-lg shadow-md p-6 mb-8 border border-amber-200">
             <h2 className="text-xl font-semibold text-amber-700 mb-4">Create New Category</h2>
             <CategoryForm
-              value={name}
-              setValue={setName}
+              name={name}
+              setName={setName}
+              image={image}
+              setImage={setImage}
               handleSubmit={handleCreateCategory}
               buttonText="Create Category"
               buttonClass="bg-amber-600 hover:bg-amber-700 text-white"
@@ -111,17 +118,23 @@ const CategoryList = () => {
             <h2 className="text-xl font-semibold text-amber-700 mb-4">Existing Categories</h2>
             <div className="flex flex-wrap gap-3">
               {categories?.map((category) => (
-                <button
+                <div
                   key={category._id}
-                  className="bg-amber-100 text-amber-800 py-2 px-4 rounded-full hover:bg-amber-200 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition-all duration-300"
-                  onClick={() => {
-                    setModalVisible(true);
-                    setSelectedCategory(category);
-                    setUpdatingName(category.name);
-                  }}
+                  className="flex items-center gap-2 bg-amber-100 rounded-full overflow-hidden hover:bg-amber-200 transition-all duration-300"
                 >
-                  {category.name}
-                </button>
+                  
+                  <button
+                    className="py-2 px-4 text-amber-800 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50"
+                    onClick={() => {
+                      setModalVisible(true);
+                      setSelectedCategory(category);
+                      setUpdatingName(category.name);
+                      setUpdatingImage(category.image || '');
+                    }}
+                  >
+                    {category.name}
+                  </button>
+                </div>
               ))}
             </div>
           </div>
@@ -130,8 +143,10 @@ const CategoryList = () => {
             <div className="bg-white rounded-lg p-6">
               <h2 className="text-2xl font-bold text-amber-800 mb-4">Update Category</h2>
               <CategoryForm
-                value={updatingName}
-                setValue={(value) => setUpdatingName(value)}
+                name={updatingName}
+                setName={setUpdatingName}
+                image={updatingImage}
+                setImage={setUpdatingImage}
                 handleSubmit={handleUpdateCategory}
                 buttonText="Update"
                 handleDelete={handleDeleteCategory}

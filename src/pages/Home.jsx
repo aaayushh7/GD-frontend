@@ -11,6 +11,8 @@ import imagePlaceholder from '../assets/12.png';
 import ProductCard from "./Products/ProductCard";
 import { useCheckLocationMutation } from '../redux/api/apiSlice';
 import bucketLogo from '../assets/logobucket.png';
+import RandomProducts from '../components/RandomProducts';
+
 
 // Skeleton Components
 const SkeletonLoader = {
@@ -20,11 +22,11 @@ const SkeletonLoader = {
       <div className="h-4 w-16 bg-gray-200 rounded animate-pulse"></div>
     </div>
   ),
-  
+
   ShopCategory: () => (
     <div className="h-16 bg-gray-200 rounded-xl animate-pulse mb-4"></div>
   ),
-  
+
   Product: () => (
     <div className="bg-white rounded-xl shadow-md overflow-hidden h-[7.5rem] border border-gray-200 p-3 animate-pulse">
       <div className="flex">
@@ -97,6 +99,8 @@ const HomePage = () => {
     return storedStatus || 'checking';
   });
   const [checkLocation] = useCheckLocationMutation();
+  const [activeTab, setActiveTab] = useState('Meal');
+
 
   const { data: categories, isLoading: isCategoriesLoading } = useFetchCategoriesQuery();
   const { data: allProducts, isLoading: isLoadingProducts } = useAllProductsQuery(undefined, {
@@ -193,16 +197,16 @@ const HomePage = () => {
 
   const renderRegionalFoods = () => {
     if (!categories && !isCategoriesLoading) return null;
-    
-    const regionalCategories = showAllRegional 
-      ? categories?.slice(0, 8)
-      : categories?.slice(0, 7);
-    
+
+    const regionalCategories = showAllRegional
+      ? categories?.slice(0, 18)
+      : categories?.slice(0, 18);
+
     return (
       <div className="mb-8">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-sm text-gray-600">Regional Foods</h2>
-          <button 
+          <button
             onClick={() => setShowAllRegional(!showAllRegional)}
             className="text-green-600 text-sm font-medium"
           >
@@ -217,28 +221,43 @@ const HomePage = () => {
               }
             `}
           </style>
-          <div className={`grid grid-rows-2 grid-flow-col gap-4 ${showAllRegional ? 'grid-cols-3' : ''}`}
-               style={{ minWidth: showAllRegional ? '100%' : 'auto' }}>
+          <div className={`grid grid-rows-2 grid-flow-col gap-4 ${showAllRegional ? 'grid-cols-3 grid-rows-4' : ''}`}
+            style={{ minWidth: showAllRegional ? '100%' : 'auto' }}>
             {isCategoriesLoading
               ? Array(8).fill(null).map((_, index) => (
-                  <SkeletonLoader.Category key={`skeleton-regional-${index}`} />
-                ))
+                <SkeletonLoader.Category key={`skeleton-regional-${index}`} />
+              ))
               : regionalCategories?.map((category) => (
-                  <motion.div
-                    key={category._id}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => handleCategoryClick(category._id)}
-                    className={`flex flex-col items-center ${!showAllRegional ? 'w-24' : ''}`}
-                  >
-                    <div className="w-20 h-20 rounded-full bg-white border border-gray-200 flex items-center justify-center shadow-md hover:shadow-md transition-all">
-                      <img src={imagePlaceholder} alt={category.name} className="w-12 h-12 object-cover"/>
-                    </div>
-                    <p className="mt-2 text-xs text-center font-medium text-gray-500">{category.name}</p>
-                  </motion.div>
-                ))}
+                <motion.div
+                  key={category._id}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => handleCategoryClick(category._id)}
+                  className={`flex flex-col items-center ${!showAllRegional ? 'w-24' : ''}`}
+                >
+                  <div className="w-[4.5rem] h-[4.5rem] rounded-lg bg-white  flex items-center justify-center hover:shadow-md transition-all overflow-hidden">
+                    <img
+                      src={category.image || './src/assets/12.png'}
+                      alt={category.name}
+                      className="w-[4.5rem] h-[4.5rem] object-cover"
+                      onError={(e) => {
+                        e.target.src = './src/assets/12.png'; // Fallback image if category image fails to load
+                      }}
+                    />
+                  </div>
+                </motion.div>
+              ))}
           </div>
+          
+
         </div>
+        <div>
+            <h2 className="text-sm text-gray-600 mt-4 flex items-center">
+              <span>You might also like </span>
+              <span className="flex-1 h-[1px] bg-green-500 ml-2"></span>
+            </h2>
+            <RandomProducts count={3} /> {/* Or use default of 3 */}
+          </div>
       </div>
     );
   };
@@ -246,10 +265,10 @@ const HomePage = () => {
   const renderShopCategories = () => {
     if (!categories && !isCategoriesLoading) return null;
 
-    const shopCategories = showAllShop 
+    const shopCategories = showAllShop
       ? categories?.slice(6)
       : categories?.slice(6, 9);
-    
+
     const gradients = [
       'from-[#1f6944] to-[#cdd5c0]',
       'from-[#ff8027] to-[#cdd5c0]',
@@ -260,7 +279,7 @@ const HomePage = () => {
       <div className="mb-8">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-sm text-gray-500">Shop ur things</h2>
-          <button 
+          <button
             onClick={() => setShowAllShop(!showAllShop)}
             className="text-green-600 text-sm font-medium"
           >
@@ -270,22 +289,22 @@ const HomePage = () => {
         <div className="space-y-4">
           {isCategoriesLoading
             ? Array(3).fill(null).map((_, index) => (
-                <SkeletonLoader.ShopCategory key={`skeleton-shop-${index}`} />
-              ))
+              <SkeletonLoader.ShopCategory key={`skeleton-shop-${index}`} />
+            ))
             : shopCategories?.map((category, index) => (
-                <motion.div
-                  key={category._id}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => handleCategoryClick(category._id)}
-                  className={`bg-gradient-to-r ${gradients[index % 3]} rounded-xl p-4 cursor-pointer text-white`}
-                >
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-medium">{category.name}</h3>
-                    <img src={imagePlaceholder} alt={category.name} className="w-12 h-12 object-cover rounded"/>
-                  </div>
-                </motion.div>
-              ))}
+              <motion.div
+                key={category._id}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => handleCategoryClick(category._id)}
+                className={`bg-gradient-to-r ${gradients[index % 3]} rounded-xl p-4 cursor-pointer text-white`}
+              >
+                <div className="flex items-center justify-between">
+                  <h3 className="font-medium">{category.name}</h3>
+                  <img src={imagePlaceholder} alt={category.name} className="w-12 h-12 object-cover rounded" />
+                </div>
+              </motion.div>
+            ))}
         </div>
       </div>
     );
@@ -297,52 +316,76 @@ const HomePage = () => {
         <AnimatePresence>
           {isLoadingProducts
             ? Array(8).fill(null).map((_, index) => (
-                <motion.div
-                  key={`skeleton-${index}`}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <SkeletonLoader.Product />
-                </motion.div>
-              ))
+              <motion.div
+                key={`skeleton-${index}`}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <SkeletonLoader.Product />
+              </motion.div>
+            ))
             : displayedProducts.map((product) => (
-                <motion.div
-                  key={product._id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <ProductCard p={product} />
-                </motion.div>
-              ))}
+              <motion.div
+                key={product._id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <ProductCard p={product} />
+              </motion.div>
+            ))}
         </AnimatePresence>
       </div>
     );
   };
 
   return (
-    <div className="min-h-screen bg-[#FDF7E4]">
-      <header className="px-4 py-3 mb-5 border-b border-gray-200 shadow-sm">
+    <div className="min-h-screen bg-white">
+
+
+      <header className="px-4 py-3 mb-5 border-b border-gray-200 shadow-sm bg-[#FDF7E4]">
         <div className="flex items-center justify-between mb-3 mt-2">
           <FaBars className="text-xl cursor-pointer text-gray-500" />
           <h1 className="text-2xl font-bold">
-            <img 
-              src={bucketLogo} 
-              alt="Bucket Logo" 
-              className="h-8 w-auto bg-gradient-to-r from-green-500 to-orange-500 bg-clip-text text-transparent" 
+            <img
+              src={bucketLogo}
+              alt="Bucket Logo"
+              className="h-8 w-auto bg-gradient-to-r from-green-500 to-orange-500 bg-clip-text text-transparent"
             />
           </h1>
           <FaUser className="text-xl cursor-pointer text-green-800" />
         </div>
       </header>
 
-      <div className="px-4 mb-6">
-        <div className="relative w-full">
+      <div className="w-full flex items-center justify-center">
+        <div className="flex w-[80%] rounded-md text-sm bg-cream-100 border-[1px] border-[#afd1b2]">
+          <button
+            onClick={() => setActiveTab('Meal')}
+            className={`flex-1 py-1 text-center font-medium transition-all duration-200 ${activeTab === 'Meal'
+              ? 'bg-[#1D3A1C] text-white rounded-md shadow-sm'
+              : 'bg-[#FFF3E6] text-[#A5521C]'
+              }`}
+          >
+            Meal
+          </button>
+          <button
+            onClick={() => setActiveTab('Mart')}
+            className={`flex-1 py-1 text-center font-medium transition-all duration-200 ${activeTab === 'Mart'
+              ? 'bg-[#1D3A1C] text-white rounded-md shadow-sm'
+              : 'bg-[#FFF3E6] text-[#A5521C]'
+              }`}
+          >
+            Mart
+          </button>
+        </div>
+      </div>
+      <div className="px-4 mb-6 mt-4">
+        <div className="relative w-ful ">
           {isSearchExpanded ? (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               className="flex items-center"
@@ -352,7 +395,7 @@ const HomePage = () => {
                 value={searchQuery}
                 onChange={handleSearch}
                 placeholder="What do you want to eat?"
-                className="w-full pl-10 pr-4 py-1 rounded-xl border-[1px] border-[#afd1b2] bg-[#FFF6E3] focus:border-gray-400 transition-colors"
+                className="w-full pl-10 pr-4 py-1 rounded-xl border-[1px] border-[#afd1b2] focus:border-gray-400 transition-colors"
               />
               <button
                 onClick={toggleSearch}
@@ -360,7 +403,7 @@ const HomePage = () => {
               >
                 <FaTimes />
               </button>
-              </motion.div>
+            </motion.div>
           ) : (
             <motion.div
               initial={{ opacity: 0 }}
@@ -372,7 +415,7 @@ const HomePage = () => {
                 type="text"
                 placeholder="What do you want to eat?"
                 onClick={toggleSearch}
-                className="w-full pl-10 pr-4 py-1 rounded-xl border-[1px] border-[#afd1b2] bg-[#FFF6E3] focus:border-gray-400 transition-colors cursor-pointer"
+                className="w-full pl-10 pr-4 py-1 rounded-xl border-[1px] border-[#afd1b2] focus:border-gray-400 transition-colors cursor-pointer"
                 readOnly
               />
             </motion.div>
@@ -383,9 +426,9 @@ const HomePage = () => {
       {!isSearchExpanded && (
         <div className="px-4 mb-8">
           <div className="bg-gradient-to-r from-[#1f6944] to-[#cdd5c0] rounded-md p-4 text-white">
-            <h3 className="text-md mb-1 font-bold">Get 10% off on <br/>ur favourites</h3>
-            <p className="text-xs opacity-90 mb-3">On your first purchase. <br/><span className='font-bold'>USE CODE: URFIRST</span></p>
-            <button 
+            <h3 className="text-md mb-1 font-bold">Get 10% off on <br />ur favourites</h3>
+            <p className="text-xs opacity-90 mb-3">On your first purchase. <br /><span className='font-bold'>USE CODE: URFIRST</span></p>
+            <button
               onClick={handleBannerClick}
               className="bg-[#fff5e3] text-green-700 px-4 py-1 rounded-md text-sm font-medium shadow-sm hover:shadow-md transition-shadow"
             >
@@ -407,8 +450,8 @@ const HomePage = () => {
           </>
         ) : (
           <>
-            {renderRegionalFoods()}
-            {renderShopCategories()}
+            {activeTab === 'Mart' && renderShopCategories()}
+            {activeTab === 'Meal' && renderRegionalFoods()}
           </>
         )}
       </main>
