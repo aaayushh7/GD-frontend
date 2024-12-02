@@ -1,70 +1,53 @@
-import React from 'react';
-
-const CouponForm = ({
-  code,
-  setCode,
-  discount,
-  setDiscount,
+const CategoryForm = ({
+  name,
+  setName,
+  image,
+  setImage,
   handleSubmit,
-  buttonText = "Submit",
+  buttonText,
   handleDelete,
-  buttonClass = "bg-amber-600 hover:bg-amber-700",
-  deleteButtonClass = "bg-red-600 hover:bg-red-700",
+  buttonClass,
+  deleteButtonClass,
 }) => {
   return (
-    <div className="w-full max-w-md mx-auto">
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label htmlFor="coupon-code" className="block text-sm font-medium text-amber-800 mb-1">
-            Coupon Code
-          </label>
-          <input
-            id="coupon-code"
-            type="text"
-            className="w-full px-3 py-2 border border-amber-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
-            placeholder="Enter coupon code"
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-            required
-          />
-        </div>
-
-        <div>
-          <label htmlFor="discount" className="block text-sm font-medium text-amber-800 mb-1">
-            Discount (%)
-          </label>
-          <input
-            id="discount"
-            type="number"
-            className="w-full px-3 py-2 border border-amber-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
-            placeholder="Enter discount percentage"
-            value={discount}
-            onChange={(e) => setDiscount(e.target.value)}
-            required
-          />
-        </div>
-
-        <div className="flex justify-between items-center">
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <input
+          type="text"
+          placeholder="Category Name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+        />
+      </div>
+      <div>
+        <input
+          type="text"
+          placeholder="Image URL"
+          value={image}
+          onChange={(e) => setImage(e.target.value)}
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+        />
+      </div>
+      <div className="flex gap-4">
+        <button
+          type="submit"
+          className={`px-6 py-2 rounded-lg ${buttonClass}`}
+        >
+          {buttonText}
+        </button>
+        {handleDelete && (
           <button
-            type="submit"
-            className={`${buttonClass} text-white py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transition duration-200 ease-in-out`}
+            onClick={handleDelete}
+            type="button"
+            className={`px-6 py-2 rounded-lg ${deleteButtonClass}`}
           >
-            {buttonText}
+            Delete
           </button>
-
-          {handleDelete && (
-            <button
-              type="button"
-              onClick={handleDelete}
-              className={`${deleteButtonClass} text-white py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition duration-200 ease-in-out`}
-            >
-              Delete
-            </button>
-          )}
-        </div>
-      </form>
-    </div>
+        )}
+      </div>
+    </form>
   );
 };
 
-export default CouponForm;
+export default CategoryForm;
