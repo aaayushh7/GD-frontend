@@ -2,18 +2,24 @@ import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { load } from "@cashfreepayments/cashfree-js";
-import { useCreateOrderMutation, useCashfreeOrderMutation, useValidateCouponMutation } from "../../redux/api/orderApiSlice";
+import { useGetUserAddressQuery } from "../../redux/api/addressApiSlice";
+import { useCreateOrderMutation, useCashfreeOrderMutation, useValidateCouponMutation  } from "../../redux/api/orderApiSlice";
 import { clearCartItems } from "../../redux/features/cart/cartSlice";
-import { FaTag, FaCalculator, FaChevronDown, FaMoneyBillWave } from "react-icons/fa";
+import { FaTag, FaChevronDown } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 import { PaymentMethodSection } from "../User/AddressSection";
+import {
+  saveShippingAddress
+} from "../../redux/features/cart/cartSlice";
 
 const SimplifiedOrder = () => {
   const dispatch = useDispatch();
   const cart = useSelector((state) => state.cart);
   const { userInfo } = useSelector((state) => state.auth);
+  const { data: userAddress } = useGetUserAddressQuery();
 
-  const [createOrder, { error }] = useCreateOrderMutation();
+
+  const [createOrder, { isLoading, error }] = useCreateOrderMutation();
   const [cashfreeOrder] = useCashfreeOrderMutation();
   const [validateCoupon] = useValidateCouponMutation();
   const [cashfreeError, setCashfreeError] = useState(null);
@@ -82,10 +88,14 @@ const SimplifiedOrder = () => {
 
   // Cashfree payment method
   const handleCashfreePayment = async (orderId) => {
+    
+
+    
     if (!cashfree) {
       toast.error('Cashfree is not initialized yet');
       return false;
     }
+    
 
     try {
       const createCashfreeOrder = await cashfreeOrder({
@@ -130,7 +140,31 @@ const SimplifiedOrder = () => {
 
   // Place order handler
   const placeOrderHandler = async () => {
-    setIsProcessing(true);
+    
+    
+  setIsProcessing(true);
+  const shippingAddress = userAddress || cart.shippingAddress;
+  const preparedShippingAddress = {
+    fullName: userInfo.name,
+    address: shippingAddress.address,
+    city: shippingAddress.city,
+    postalCode: shippingAddress.postalCode,
+    country: shippingAddress.country,
+    email: userInfo.email,
+    phone: shippingAddress.phone || '' // Add a fallback
+  };
+  dispatch(saveShippingAddress(preparedShippingAddress));
+
+  const requiredFields = ['address', 'city', 'postalCode', 'country'];
+    const missingFields = requiredFields.filter(
+      field => !preparedShippingAddress[field] || preparedShippingAddress[field].trim() === ''
+    );
+
+    if (missingFields.length > 0) {
+      toast.error(`Please complete the following address fields: ${missingFields.join(', ')}`);
+      return;
+    }
+
     try {
       const res = await createOrder({
         orderItems: cart.cartItems,

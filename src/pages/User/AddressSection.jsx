@@ -7,10 +7,13 @@ import {
     useUpdateAddressMutation
 } from "../../redux/api/addressApiSlice";
 import {
-    savePaymentMethod
+    savePaymentMethod,
+    saveShippingAddress
   } from "../../redux/features/cart/cartSlice";
 
   const AddressSection = () => {
+    const dispatch = useDispatch();
+
     const [showForm, setShowForm] = useState(false);
     const [isEditingAddress, setIsEditingAddress] = useState(false);
     const [isLoadingAddress, setIsLoadingAddress] = useState(false);
@@ -54,6 +57,17 @@ import {
         } else {
           await addAddress(address).unwrap();
         }
+
+        dispatch(saveShippingAddress({
+          fullName: userInfo.name, // Assuming you have userInfo from Redux
+          address: address.address,
+          city: address.city,
+          postalCode: address.postalCode,
+          country: address.country,
+          email: userInfo.email, // Assuming you have userInfo from Redux
+          phone: address.country // This seems incorrect, you might want a separate phone field
+        }));
+        
         toast.success('Address updated successfully');
         setIsEditingAddress(false);
         setShowForm(false);
