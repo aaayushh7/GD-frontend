@@ -17,8 +17,8 @@ import { logout } from "../../redux/features/auth/authSlice";
 import UserIcon from "../../assets/user";
 import HeartIcon from "../../assets/heart";
 import HomeIcon from "../../assets/home";
-import HelpIcon from "../../assets/help";
 import Profile from "../../pages/User/Profile";
+import OrderIcon from "../../assets/orderIcon";
 
 const Navigation = () => {
   const { userInfo } = useSelector((state) => state.auth);
@@ -84,13 +84,9 @@ const Navigation = () => {
   const navItems = [
     { to: "/", icon: HomeIcon, label: "Home" },
     {
-      to: `https://wa.me/916306500300`,
-      icon: HelpIcon,
-      label: "Help",
-      onClick: (e) => {
-        e.preventDefault();
-        window.open(`https://wa.me/916306500300`, '_blank');
-      }
+      to: "/user-order",
+      icon: OrderIcon,
+      label: "My Orders",
     },
     { to: "/favorite", icon: HeartIcon, label: "Favorites" },
   ];
