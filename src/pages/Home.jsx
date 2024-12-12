@@ -92,7 +92,7 @@ const HomePage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [displayedProducts, setDisplayedProducts] = useState([]);
   const [shouldFetchProducts, setShouldFetchProducts] = useState(false);
-  const [showAllRegional, setShowAllRegional] = useState(false);
+  const [showAllRegional, setShowAllRegional] = useState(true);
   const [showAllShop, setShowAllShop] = useState(false);
   const [locationStatus, setLocationStatus] = useState(() => {
     const storedStatus = localStorage.getItem('locationStatus');
@@ -206,12 +206,7 @@ const HomePage = () => {
       <div className="mb-8">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-sm text-gray-600">Regional Foods</h2>
-          <button
-            onClick={() => setShowAllRegional(!showAllRegional)}
-            className="text-green-600 text-sm font-medium"
-          >
-            {showAllRegional ? 'Show Less' : 'See All'}
-          </button>
+          
         </div>
         <div className="overflow-x-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
           <style>
