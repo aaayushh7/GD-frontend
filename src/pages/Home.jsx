@@ -96,7 +96,7 @@ const HomePage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [displayedProducts, setDisplayedProducts] = useState([]);
   const [shouldFetchProducts, setShouldFetchProducts] = useState(false);
-  const [showAllRegional, setShowAllRegional] = useState(false);
+  const [showAllRegional, setShowAllRegional] = useState(true);
   const [showAllShop, setShowAllShop] = useState(true);
   const [locationStatus, setLocationStatus] = useState(() => {
     const storedStatus = localStorage.getItem('locationStatus');
