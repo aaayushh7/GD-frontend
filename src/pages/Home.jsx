@@ -203,8 +203,8 @@ const HomePage = () => {
     if (!categories && !isCategoriesLoading) return null;
 
     const regionalCategories = showAllRegional
-      ? categories?.slice(0, 18)
-      : categories?.slice(0, 18);
+      ? categories?.slice(0, 15)
+      : categories?.slice(0, 16);
 
     return (
       <div className="mb-8">
