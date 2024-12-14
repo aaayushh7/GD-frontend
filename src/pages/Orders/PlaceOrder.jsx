@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { load } from "@cashfreepayments/cashfree-js";
-import { useGetUserAddressQuery } from "../../redux/api/addressApiSlice";
+import { useGetUserAddressesQuery } from "../../redux/api/addressApiSlice";
 import { useCreateOrderMutation, useCashfreeOrderMutation, useValidateCouponMutation  } from "../../redux/api/orderApiSlice";
 import { clearCartItems } from "../../redux/features/cart/cartSlice";
 import { FaTag, FaChevronDown } from "react-icons/fa";
@@ -16,7 +16,7 @@ const SimplifiedOrder = () => {
   const dispatch = useDispatch();
   const cart = useSelector((state) => state.cart);
   const { userInfo } = useSelector((state) => state.auth);
-  const { data: userAddress } = useGetUserAddressQuery();
+  const { data: userAddress } = useGetUserAddressesQuery();
 
 
   const [createOrder, { isLoading, error }] = useCreateOrderMutation();
@@ -140,35 +140,45 @@ const SimplifiedOrder = () => {
 
   // Place order handler
   const placeOrderHandler = async () => {
+    setIsProcessing(true);
     
+    // Find the default address or use the first address
+    const defaultAddress = userAddress?.find(addr => addr.isDefault);
+    const addressToUse = defaultAddress || (userAddress && userAddress[0]);
+  
+    if (!addressToUse) {
+      toast.error('No address found. Please add an address.');
+      setIsProcessing(false);
+      return;
+    }
+  
+    const preparedShippingAddress = {
+      fullName: userInfo.name,
+      address: addressToUse.address,
+      city: addressToUse.city,
+      postalCode: addressToUse.postalCode,
+      country: addressToUse.country,
+      email: userInfo.email,
+      phone: addressToUse.phone || '' // Add a fallback
+    };
     
-  setIsProcessing(true);
-  const shippingAddress = userAddress || cart.shippingAddress;
-  const preparedShippingAddress = {
-    fullName: userInfo.name,
-    address: shippingAddress.address,
-    city: shippingAddress.city,
-    postalCode: shippingAddress.postalCode,
-    country: shippingAddress.country,
-    email: userInfo.email,
-    phone: shippingAddress.phone || '' // Add a fallback
-  };
-  dispatch(saveShippingAddress(preparedShippingAddress));
-
-  const requiredFields = ['address', 'city', 'postalCode', 'country'];
+    dispatch(saveShippingAddress(preparedShippingAddress));
+  
+    const requiredFields = ['address', 'city', 'postalCode', 'country'];
     const missingFields = requiredFields.filter(
       field => !preparedShippingAddress[field] || preparedShippingAddress[field].trim() === ''
     );
-
+  
     if (missingFields.length > 0) {
       toast.error(`Please complete the following address fields: ${missingFields.join(', ')}`);
+      setIsProcessing(false);
       return;
     }
-
+  
     try {
       const res = await createOrder({
         orderItems: cart.cartItems,
-        shippingAddress: cart.shippingAddress,
+        shippingAddress: preparedShippingAddress,
         paymentMethod: cart.paymentMethod,
         itemsPrice: cart.itemsPrice,
         shippingPrice: cart.shippingPrice,
@@ -177,13 +187,13 @@ const SimplifiedOrder = () => {
         couponDiscount: couponDiscount,
         couponCode: couponCode
       }).unwrap();
-
+  
       if (!res || !res._id) {
         throw new Error('Order creation failed, no order ID returned.');
       }
-
+  
       const paymentSuccess = await handlePayment(res._id);
-
+  
       if (paymentSuccess) {
         dispatch(clearCartItems());
         window.location.href = `/order/${res._id}`;

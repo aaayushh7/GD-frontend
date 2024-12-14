@@ -12,6 +12,10 @@ import ProductCard from "./Products/ProductCard";
 import { useCheckLocationMutation } from '../redux/api/apiSlice';
 import bucketLogo from '../assets/logobucket.png';
 import RandomProducts from '../components/RandomProducts';
+import bannerImage from '../assets/Banner.png'
+import Ur from '../assets/ur.png';
+import ShopCategories from './ShopCategories';
+import HeaderAddressModal from './User/HeaderAddress';
 
 
 // Skeleton Components
@@ -92,8 +96,8 @@ const HomePage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [displayedProducts, setDisplayedProducts] = useState([]);
   const [shouldFetchProducts, setShouldFetchProducts] = useState(false);
-  const [showAllRegional, setShowAllRegional] = useState(true);
-  const [showAllShop, setShowAllShop] = useState(false);
+  const [showAllRegional, setShowAllRegional] = useState(false);
+  const [showAllShop, setShowAllShop] = useState(true);
   const [locationStatus, setLocationStatus] = useState(() => {
     const storedStatus = localStorage.getItem('locationStatus');
     return storedStatus || 'checking';
@@ -206,7 +210,12 @@ const HomePage = () => {
       <div className="mb-8">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-sm text-gray-600">Regional Foods</h2>
-          
+          <button
+            onClick={() => setShowAllRegional(!showAllRegional)}
+            className="text-green-600 text-sm font-medium"
+          >
+            {showAllRegional ? 'Show Less' : 'See All'}
+          </button>
         </div>
         <div className="overflow-x-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
           <style>
@@ -243,16 +252,16 @@ const HomePage = () => {
                 </motion.div>
               ))}
           </div>
-          
+
 
         </div>
         <div>
-            <h2 className="text-sm text-gray-600 mt-4 flex items-center">
-              <span>You might also like </span>
-              <span className="flex-1 h-[1px] bg-green-500 ml-2"></span>
-            </h2>
-            <RandomProducts count={3} /> {/* Or use default of 3 */}
-          </div>
+          <h2 className="text-sm text-gray-600 mt-4 flex items-center">
+            <span>You might also like </span>
+            <span className="flex-1 h-[1px] bg-green-500 ml-2"></span>
+          </h2>
+          <RandomProducts count={3} /> {/* Or use default of 3 */}
+        </div>
       </div>
     );
   };
@@ -260,48 +269,12 @@ const HomePage = () => {
   const renderShopCategories = () => {
     if (!categories && !isCategoriesLoading) return null;
 
-    const shopCategories = showAllShop
-      ? categories?.slice(6)
-      : categories?.slice(6, 9);
-
-    const gradients = [
-      'from-[#1f6944] to-[#cdd5c0]',
-      'from-[#ff8027] to-[#cdd5c0]',
-      'from-[#ff3e3e] to-[#cdd5c0]'
-    ];
-
     return (
-      <div className="mb-8">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-sm text-gray-500">Shop ur things</h2>
-          <button
-            onClick={() => setShowAllShop(!showAllShop)}
-            className="text-green-600 text-sm font-medium"
-          >
-            {showAllShop ? 'Show Less' : 'See All'}
-          </button>
-        </div>
-        <div className="space-y-4">
-          {isCategoriesLoading
-            ? Array(3).fill(null).map((_, index) => (
-              <SkeletonLoader.ShopCategory key={`skeleton-shop-${index}`} />
-            ))
-            : shopCategories?.map((category, index) => (
-              <motion.div
-                key={category._id}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => handleCategoryClick(category._id)}
-                className={`bg-gradient-to-r ${gradients[index % 3]} rounded-xl p-4 cursor-pointer text-white`}
-              >
-                <div className="flex items-center justify-between">
-                  <h3 className="font-medium">{category.name}</h3>
-                  <img src={imagePlaceholder} alt={category.name} className="w-12 h-12 object-cover rounded" />
-                </div>
-              </motion.div>
-            ))}
-        </div>
-      </div>
+      <ShopCategories
+        categories={categories}
+        isCategoriesLoading={isCategoriesLoading}
+        handleCategoryClick={handleCategoryClick}
+      />
     );
   };
 
@@ -342,16 +315,15 @@ const HomePage = () => {
 
 
       <header className="px-4 py-3 mb-5 border-b border-gray-200 shadow-sm bg-[#FDF7E4]">
-        <div className="flex items-center justify-between mb-3 mt-2">
-          <FaBars className="text-xl cursor-pointer text-gray-500" />
-          <h1 className="text-2xl font-bold">
+        <div className="flex items-center justify-center mb-3 mt-2">
+        <HeaderAddressModal />
+        <h1 className="text-2xl font-bold">
             <img
               src={bucketLogo}
               alt="Bucket Logo"
               className="h-8 w-auto bg-gradient-to-r from-green-500 to-orange-500 bg-clip-text text-transparent"
             />
           </h1>
-          <FaUser className="text-xl cursor-pointer text-green-800" />
         </div>
       </header>
 
@@ -364,6 +336,8 @@ const HomePage = () => {
               : 'bg-[#FFF3E6] text-[#A5521C]'
               }`}
           >
+            <span>
+              <img src={Ur} alt="Ur Logo" className="inline-block" /></span>
             Meal
           </button>
           <button
@@ -373,6 +347,8 @@ const HomePage = () => {
               : 'bg-[#FFF3E6] text-[#A5521C]'
               }`}
           >
+            <span>
+            <img src={Ur} alt="Ur Logo" className="inline-block" /></span>
             Mart
           </button>
         </div>
@@ -420,15 +396,15 @@ const HomePage = () => {
 
       {!isSearchExpanded && (
         <div className="px-4 mb-8">
-          <div className="bg-gradient-to-r from-[#1f6944] to-[#cdd5c0] rounded-md p-4 text-white">
-            <h3 className="text-md mb-1 font-bold">Get 10% off on <br />ur favourites</h3>
-            <p className="text-xs opacity-90 mb-3">On your first purchase. <br /><span className='font-bold'>USE CODE: URFIRST</span></p>
-            <button
-              onClick={handleBannerClick}
-              className="bg-[#fff5e3] text-green-700 px-4 py-1 rounded-md text-sm font-medium shadow-sm hover:shadow-md transition-shadow"
-            >
-              Buy Now
-            </button>
+          <div
+            className="bg-fit bg-center rounded-md p-4 text-white"
+            style={{
+              backgroundImage: `url(${bannerImage})`,
+              width: '100%',
+              height: '9rem' // Or specify exact width if known
+            }}
+          >
+
           </div>
         </div>
       )}

@@ -8,12 +8,16 @@ export const addressApiSlice = apiSlice.injectEndpoints({
         method: "POST",
         body: data,
       }),
+      // Invalidate and refetch addresses after saving
+      invalidatesTags: ['Addresses']
     }),
-    getUserAddress: builder.query({
+    getUserAddresses: builder.query({
       query: () => ({
         url: "/api/address",
         method: "GET",
       }),
+      // Add a tag for caching and invalidation
+      providesTags: ['Addresses']
     }),
     updateAddress: builder.mutation({
       query: ({ id, ...data }) => ({
@@ -21,19 +25,29 @@ export const addressApiSlice = apiSlice.injectEndpoints({
         method: "PUT",
         body: data,
       }),
+      invalidatesTags: ['Addresses']
     }),
     deleteAddress: builder.mutation({
       query: (id) => ({
         url: `/api/address/${id}`,
         method: "DELETE",
       }),
+      invalidatesTags: ['Addresses']
     }),
+    setDefaultAddress: builder.mutation({
+      query: (id) => ({
+        url: `/api/address/${id}/default`,
+        method: "PUT",
+      }),
+      invalidatesTags: ['Addresses']
+    })
   }),
 });
 
 export const {
   useSaveAddressMutation,
-  useGetUserAddressQuery,
+  useGetUserAddressesQuery, // Changed from useGetUserAddressesQuery
   useUpdateAddressMutation,
   useDeleteAddressMutation,
+  useSetDefaultAddressMutation // New mutation
 } = addressApiSlice;

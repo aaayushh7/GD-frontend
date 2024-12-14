@@ -1,207 +1,253 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import {
     useSaveAddressMutation,
-    useGetUserAddressQuery,
-    useUpdateAddressMutation
+    useGetUserAddressesQuery,
+    useUpdateAddressMutation,
+    useSetDefaultAddressMutation // Add this import
 } from "../../redux/api/addressApiSlice";
 import {
     savePaymentMethod,
     saveShippingAddress
-  } from "../../redux/features/cart/cartSlice";
+} from "../../redux/features/cart/cartSlice";
 
-  const AddressSection = () => {
+const AddressSection = () => {
     const dispatch = useDispatch();
+    const userInfo = useSelector((state) => state.auth.userInfo);
 
     const [showForm, setShowForm] = useState(false);
     const [isEditingAddress, setIsEditingAddress] = useState(false);
     const [isLoadingAddress, setIsLoadingAddress] = useState(false);
     const [address, setAddress] = useState({
-      address: '',
-      city: '',
-      postalCode: '',
-      country: '',
+        address: '',
+        city: '',
+        postalCode: '',
+        country: '',
     });
-  
-    const { data: userAddress, isLoading: loadingAddress, refetch: refetchAddress } = useGetUserAddressQuery();
+
+    const { 
+        data: userAddresses, 
+        isLoading: loadingAddress, 
+        refetch: refetchAddress 
+    } = useGetUserAddressesQuery();
+
     const [updateAddress, { isLoading: loadingUpdateAddress }] = useUpdateAddressMutation();
     const [addAddress, { isLoading: loadingAddAddress }] = useSaveAddressMutation();
-  
+    const [setDefaultAddress] = useSetDefaultAddressMutation(); // Add this line
+
+
+    // Determine the address to display (default or first address)
+    const displayAddress = userAddresses?.length > 0 
+        ? (
+            // Prioritize the default address
+            userAddresses.find(addr => addr.isDefault) || 
+            // If no default, use the first address
+            userAddresses[0]
+        )
+        : null;
+
     useEffect(() => {
-      if (userAddress) {
-        setAddress({
-          address: userAddress.address,
-          postalCode: userAddress.postalCode,
-          country: userAddress.country,
-          city: userAddress.city,
-        });
-      }
-    }, [userAddress]);
-  
+        if (displayAddress) {
+            setAddress({
+                address: displayAddress.address,
+                postalCode: displayAddress.postalCode,
+                country: displayAddress.country,
+                city: displayAddress.city,
+            });
+        }
+    }, [displayAddress]);
+
     const handleInputChange = (e) => {
-      const { name, value } = e.target;
-      setAddress(prev => ({ ...prev, [name]: value }));
+        const { name, value } = e.target;
+        setAddress(prev => ({ ...prev, [name]: value }));
     };
-  
+
     const handleEditAddress = () => {
-      setIsEditingAddress(true);
-      setShowForm(true);
+        setIsEditingAddress(true);
+        setShowForm(true);
     };
-  
+
     const handleSaveAddress = async (e) => {
       e.preventDefault();
       try {
-        if (userAddress) {
-          await updateAddress({ id: userAddress._id, ...address }).unwrap();
-        } else {
-          await addAddress(address).unwrap();
-        }
+          let savedAddress;
+          if (displayAddress) {
+              savedAddress = await updateAddress({ 
+                  id: displayAddress._id, 
+                  ...address 
+              }).unwrap();
 
-        dispatch(saveShippingAddress({
-          fullName: userInfo.name, // Assuming you have userInfo from Redux
-          address: address.address,
-          city: address.city,
-          postalCode: address.postalCode,
-          country: address.country,
-          email: userInfo.email, // Assuming you have userInfo from Redux
-          phone: address.country // This seems incorrect, you might want a separate phone field
-        }));
-        
-        toast.success('Address updated successfully');
-        setIsEditingAddress(false);
-        setShowForm(false);
-        refetchAddress();
+              // If the updated address is not the default, set it as default
+              if (!savedAddress.isDefault) {
+                  await setDefaultAddress(savedAddress._id).unwrap();
+              }
+          } else {
+              savedAddress = await addAddress(address).unwrap();
+          }
+
+          dispatch(saveShippingAddress({
+              fullName: userInfo?.name || '', 
+              address: savedAddress.address,
+              city: savedAddress.city,
+              postalCode: savedAddress.postalCode,
+              country: savedAddress.country,
+              email: userInfo?.email || '',
+              phone: savedAddress.phone || ''
+          }));
+
+          toast.success('Address updated successfully');
+          setIsEditingAddress(false);
+          setShowForm(false);
+          refetchAddress();
       } catch (err) {
-        toast.error(err?.data?.message || err.error);
+          toast.error(err?.data?.message || err.error);
       }
-    };
-  
-    const handleShowAddress = async () => {
-      if (!showForm) {
-        setIsLoadingAddress(true);
-        try {
-          await refetchAddress();
-        } catch (error) {
-          toast.error('Failed to fetch address. Please try again.');
-        } finally {
-          setIsLoadingAddress(false);
-        }
-      }
-      setShowForm(!showForm);
-    };
-  
-    return (
-      <div className="fixed bottom-[4.85rem] left-0 right-0 z-50">
-        {/* Bottom Bar */}
-        <div 
-          className={`
-            bg-gradient-to-r from-orange-100 to-white 
-            p-4 flex rounded-t-2xl items-center justify-between 
-            shadow-lg cursor-pointer
-            transition-all duration-300 ease-in-out
-            ${showForm ? 'rounded-b-none' : ''}
-          `}
-          onClick={!showForm && !userAddress ? handleShowAddress : undefined}
-        >
-          <div className="w-[240px]">
-            <p className="text-[12px] text-green-700 font-medium">
-              {userAddress ? 'Delivering to:' : 'Add Address'}
-            </p>
-            {userAddress && (
-              <p className="text-xs text-gray-700">
-                {`${userAddress.address}, ${userAddress.city}, ${userAddress.postalCode}, ${userAddress.country}`}
-              </p>
-            )}
-          </div>
-          
-          {userAddress && !showForm && (
-            <button 
-              onClick={handleEditAddress}
-              className="text-orange-600 font-medium text-xs ml-2"
-            >
-              Edit
-            </button>
-          )}
-        </div>
-  
-        {/* Expandable Form */}
-        <div 
-          className={`
-            bg-white 
-            shadow-2xl 
-            overflow-hidden 
-            transition-all 
-            duration-300 
-            ease-in-out 
-            ${showForm 
-              ? 'max-h-[500px] opacity-100 py-4 px-4' 
-              : 'max-h-0 opacity-0 py-0 px-0'}
-          `}
-        >
-          {showForm && (
-            <form onSubmit={handleSaveAddress} className="space-y-4">
-              <input
-                type="text"
-                name="address"
-                placeholder="Address Line 1"
-                value={address.address}
-                onChange={handleInputChange}
-                className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                required
-              />
-              <input
-                type="text"
-                name="city"
-                placeholder="Address Line 2"
-                value={address.city}
-                onChange={handleInputChange}
-                className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                required
-              />
-              <input
-                type="text"
-                name="postalCode"
-                placeholder="Postal Code"
-                value={address.postalCode}
-                onChange={handleInputChange}
-                className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                required
-              />
-              <input
-                type="text"
-                name="country"
-                placeholder="Contact Number"
-                value={address.country}
-                onChange={handleInputChange}
-                className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                required
-              />
-              <div className="flex gap-2">
-                <button
-                  type="submit"
-                  disabled={loadingUpdateAddress || loadingAddAddress}
-                  className="w-full px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 disabled:opacity-50"
-                >
-                  {loadingUpdateAddress ? 'Updating...' : loadingAddAddress ? 'Saving...' : isEditingAddress ? 'Update Address' : 'Save Address'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowForm(false);
-                    setIsEditingAddress(false);
-                  }}
-                  className="w-full px-4 py-2 border border-gray-300 rounded text-red-500 hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          )}
-        </div>
-      </div>
-    );
   };
+
+    const handleShowAddress = async () => {
+        if (!showForm) {
+            setIsLoadingAddress(true);
+            try {
+                await refetchAddress();
+            } catch (error) {
+                toast.error('Failed to fetch address. Please try again.');
+            } finally {
+                setIsLoadingAddress(false);
+            }
+        }
+        setShowForm(!showForm);
+    };
+
+    const handleSetDefaultAddress = async (addressId) => {
+      try {
+          await setDefaultAddress(addressId).unwrap();
+          refetchAddress();
+          toast.success('Default address updated');
+      } catch (err) {
+          toast.error(err?.data?.message || 'Failed to set default address');
+      }
+  };
+
+
+    return (
+        <div className="fixed bottom-[4.85rem] left-0 right-0 z-50">
+            {/* Bottom Bar */}
+            <div 
+                className={`
+                    bg-gradient-to-r from-orange-100 to-white 
+                    p-4 flex rounded-t-2xl items-center justify-between 
+                    shadow-lg cursor-pointer
+                    transition-all duration-300 ease-in-out
+                    ${showForm ? 'rounded-b-none' : ''}
+                `}
+                onClick={!showForm && !displayAddress ? handleShowAddress : undefined}
+            >
+                <div className="w-[240px]">
+                    <p className="text-[12px] text-green-700 font-medium">
+                        {displayAddress ? 'Delivering to:' : 'Add Address'}
+                    </p>
+                    {displayAddress && (
+                        <p className="text-xs text-gray-700">
+                            {`${displayAddress.address}, ${displayAddress.city}, ${displayAddress.postalCode}, ${displayAddress.country}`}
+                        </p>
+                    )}
+                </div>
+                
+                {displayAddress && !showForm && (
+                    <button 
+                        onClick={handleEditAddress}
+                        className="text-orange-600 font-medium text-xs ml-2"
+                    >
+                        Edit
+                    </button>
+                )}
+            </div>
+
+            {/* Expandable Form */}
+            <div 
+                className={`
+                    bg-white 
+                    shadow-2xl 
+                    overflow-hidden 
+                    transition-all 
+                    duration-300 
+                    ease-in-out 
+                    ${showForm 
+                        ? 'max-h-[500px] opacity-100 py-4 px-4' 
+                        : 'max-h-0 opacity-0 py-0 px-0'}
+                `}
+            >
+                {showForm && (
+                    <form onSubmit={handleSaveAddress} className="space-y-4">
+                        <input
+                            type="text"
+                            name="address"
+                            placeholder="Address Line 1"
+                            value={address.address}
+                            onChange={handleInputChange}
+                            className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                            required
+                        />
+                        <input
+                            type="text"
+                            name="city"
+                            placeholder="City"
+                            value={address.city}
+                            onChange={handleInputChange}
+                            className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                            required
+                        />
+                        <input
+                            type="text"
+                            name="postalCode"
+                            placeholder="Postal Code"
+                            value={address.postalCode}
+                            onChange={handleInputChange}
+                            className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                            required
+                        />
+                        <input
+                            type="text"
+                            name="country"
+                            placeholder="Country"
+                            value={address.country}
+                            onChange={handleInputChange}
+                            className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                            required
+                        />
+                        <div className="flex gap-2">
+                            <button
+                                type="submit"
+                                disabled={loadingUpdateAddress || loadingAddAddress}
+                                className="w-full px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 disabled:opacity-50"
+                            >
+                                {loadingUpdateAddress 
+                                    ? 'Updating...' 
+                                    : loadingAddAddress 
+                                    ? 'Saving...' 
+                                    : isEditingAddress 
+                                    ? 'Update Address' 
+                                    : 'Save Address'}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setShowForm(false);
+                                    setIsEditingAddress(false);
+                                }}
+                                className="w-full px-4 py-2 border border-gray-300 rounded text-red-500 hover:bg-gray-50"
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                )}
+            </div>
+        </div>
+    );
+};
+
 
   const PaymentMethodSection = ({ onClose }) => {
     const [selectedMethod, setSelectedMethod] = useState('');

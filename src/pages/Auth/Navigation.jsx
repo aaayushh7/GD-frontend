@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { toast } from "react-toastify";
 import {
   AiOutlineDashboard,
   AiOutlineInbox,
@@ -13,7 +12,6 @@ import {
 } from "react-icons/ai";
 import { useLogoutMutation } from "../../redux/api/usersApiSlice";
 import { logout } from "../../redux/features/auth/authSlice";
-// import FavoritesCount from "../Products/FavoritesCount";
 import UserIcon from "../../assets/user";
 import HeartIcon from "../../assets/heart";
 import HomeIcon from "../../assets/home";
@@ -27,6 +25,7 @@ const Navigation = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isProfileExpanded, setIsProfileExpanded] = useState(false);
   const [activeItem, setActiveItem] = useState("/");
+  const [showSwipeSlider, setShowSwipeSlider] = useState(false);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -34,12 +33,29 @@ const Navigation = () => {
   const dropdownRef = useRef(null);
   const profileButtonRef = useRef(null);
   const expandedAreaRef = useRef(null);
+  const swipeSliderRef = useRef(null);
 
   const [logoutApiCall] = useLogoutMutation();
+  const [sliderStartX, setSliderStartX] = useState(null);
 
   useEffect(() => {
     setActiveItem(location.pathname);
   }, [location]);
+
+  useEffect(() => {
+    let timeoutId;
+    if (isProfileExpanded) {
+      timeoutId = setTimeout(() => {
+        setShowSwipeSlider(true);
+      }, 1000);
+    } else {
+      setShowSwipeSlider(false);
+    }
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [isProfileExpanded]);
 
   const toggleProfileExpanded = () => {
     if (userInfo) {
@@ -80,6 +96,29 @@ const Navigation = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  const handleSliderTouchStart = (e) => {
+    if (isProfileExpanded) {
+      setSliderStartX(e.touches[0].clientY);
+    }
+  };
+
+  const handleSliderTouchMove = (e) => {
+    if (sliderStartX !== null) {
+      const currentY = e.touches[0].clientY;
+      const deltaY = currentY - sliderStartX;
+
+      // If swiped down more than 50 pixels, close the profile
+      if (deltaY > 70) {
+        setIsProfileExpanded(false);
+        setSliderStartX(null);
+      }
+    }
+  };
+
+  const handleSliderTouchEnd = () => {
+    setSliderStartX(null);
+  };
 
   const navItems = [
     { to: "/", icon: HomeIcon, label: "Home" },
@@ -130,7 +169,6 @@ const Navigation = () => {
     );
   };
 
-  // eslint-disable-next-line react/prop-types
   const DropdownItem = ({ to, onClick, icon: Icon, label }) => {
     const content = (
       <div className="flex items-center justify-start w-full py-3 px-4 hover:bg-yellow-100 transition-colors duration-300">
@@ -153,31 +191,58 @@ const Navigation = () => {
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50">
       {!userInfo?.isAdmin && userInfo && (
-        <div
-          ref={expandedAreaRef}
-          className={`fixed inset-x-0 bottom-14 overflow-y-auto transition-all duration-500 ease-in-out 
-                    backdrop-blur-lg bg-[#f8f0e0c9]
-                    ${isProfileExpanded ? 'h-[calc(100vh-9rem)] opacity-100' : 'h-0 opacity-0'}`}
-          style={{
-            boxShadow: isProfileExpanded ? '0 -4px 6px -1px rgba(0, 0, 0, 0.1), 0 -2px 4px -1px rgba(0, 0, 0, 0.06)' : 'none',
-            borderTopLeftRadius: '1.5rem',
-            borderTopRightRadius: '1.5rem',
-          }}
-        >
-          <div className="w-16 h-1 bg-gray-900  mx-auto mt-3 rounded-full"></div>
-          <div className={`${isProfileExpanded ? 'translate-y-0' : 'translate-y-full'} transition-transform duration-500 ease-in-out`}>
-            <Profile onClose={() => setIsProfileExpanded(false)} />
-            <div className="mt-6 pt-6 border-t border-gray-200 px-6 pb-6">
-              <button
-                onClick={logoutHandler}
-                className="w-full bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-600 transition duration-300"
-              >
-                Logout
-              </button>
+        <>
+          <div
+            ref={expandedAreaRef}
+            className={`fixed inset-x-0 bottom-14 overflow-y-auto transition-all duration-500 ease-in-out 
+                      backdrop-blur-lg bg-white
+                      ${isProfileExpanded ? 'h-[calc(100vh-9rem)] opacity-100' : 'h-0 opacity-0'}`}
+            style={{
+              boxShadow: isProfileExpanded ? '0 -4px 6px -1px rgba(0, 0, 0, 0.1), 0 -2px 4px -1px rgba(0, 0, 0, 0.06)' : 'none',
+              borderTopLeftRadius: '1.5rem',
+              borderTopRightRadius: '1.5rem',
+            }}
+          >
+            <div className="w-16 h-1 bg-gray-900  mx-auto mt-3 rounded-full"></div>
+            <div className={`${isProfileExpanded ? 'translate-y-0' : 'translate-y-full'} transition-transform duration-500 ease-in-out`}>
+              <Profile onClose={() => setIsProfileExpanded(false)} />
+              <div className="border-t border-gray-200 px-6 pb-9">
+                <button
+                  onClick={logoutHandler}
+                  className="w-full bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-600 transition duration-300"
+                >
+                  Logout
+                </button>
+              </div>
+              <footer className="mt-6 text-center text-gray-500">
+                Made with love by PureSphere
+              </footer>
             </div>
           </div>
-        </div>
+
+          {isProfileExpanded && showSwipeSlider && (
+            <div
+              ref={swipeSliderRef}
+              className="fixed bottom-[8rem] right-2 z-50 transition-all duration-500 ease-in-out transform 
+                        translate-x-0 
+                        animate-slide-in-right"
+              onTouchStart={handleSliderTouchStart}
+              onTouchMove={handleSliderTouchMove}
+              onTouchEnd={handleSliderTouchEnd}
+            >
+              <div className="bg-green-700 border-2 border-white text-white w-[45px] rounded-full flex items-center h-[95px]">
+                <div className="flex flex-col pl-[15px] space-y-[-1.2rem] animate-bounce">
+                  <div className="h-3 w-3 border-r-2 border-b-2 border-white transform rotate-45"></div>
+                  <div className="h-3 w-3 border-r-2 border-b-2 border-white transform rotate-45 opacity-70"></div>
+                  <div className="h-3 w-3 border-r-2 border-b-2 border-white transform rotate-45 opacity-40"></div>
+                  <div className="h-3 w-3 border-r-2 border-b-2 border-white transform rotate-45 opacity-20"></div>
+                </div>
+              </div>
+            </div>
+          )}
+        </>
       )}
+
       {userInfo?.isAdmin && (
         <div
           ref={dropdownRef}
@@ -191,6 +256,7 @@ const Navigation = () => {
           </div>
         </div>
       )}
+
       <nav className="fixed bottom-0 left-0 right-0 bg-white shadow-lg rounded-t-3xl ">
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center py-2">
@@ -211,7 +277,6 @@ const Navigation = () => {
           </div>
         </div>
       </nav>
-
     </div>
   );
 };
