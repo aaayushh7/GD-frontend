@@ -17,6 +17,7 @@ import HeartIcon from "../../assets/heart";
 import HomeIcon from "../../assets/home";
 import Profile from "../../pages/User/Profile";
 import OrderIcon from "../../assets/orderIcon";
+import SwipeSlider from "../../components/SwipeSlider";
 
 const Navigation = () => {
   const { userInfo } = useSelector((state) => state.auth);
@@ -222,23 +223,16 @@ const Navigation = () => {
 
           {isProfileExpanded && showSwipeSlider && (
             <div
-              ref={swipeSliderRef}
-              className="fixed bottom-[8rem] right-2 z-50 transition-all duration-500 ease-in-out transform 
-                        translate-x-0 
-                        animate-slide-in-right"
+            ref={swipeSliderRef}
+            className="fixed bottom-[8rem] right-2 z-50 transition-all duration-500 ease-in-out transform translate-x-0 animate-slide-in-right"
+          >
+            <SwipeSlider
+              isVisible={true}
               onTouchStart={handleSliderTouchStart}
               onTouchMove={handleSliderTouchMove}
               onTouchEnd={handleSliderTouchEnd}
-            >
-              <div className="bg-green-700 border-2 border-white text-white w-[45px] rounded-full flex items-center h-[95px]">
-                <div className="flex flex-col pl-[15px] space-y-[-1.2rem] animate-bounce">
-                  <div className="h-3 w-3 border-r-2 border-b-2 border-white transform rotate-45"></div>
-                  <div className="h-3 w-3 border-r-2 border-b-2 border-white transform rotate-45 opacity-70"></div>
-                  <div className="h-3 w-3 border-r-2 border-b-2 border-white transform rotate-45 opacity-40"></div>
-                  <div className="h-3 w-3 border-r-2 border-b-2 border-white transform rotate-45 opacity-20"></div>
-                </div>
-              </div>
-            </div>
+            />
+          </div>
           )}
         </>
       )}
