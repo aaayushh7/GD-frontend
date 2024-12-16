@@ -121,7 +121,7 @@ const HeaderAddressModal = () => {
                             `}
                         >
                             {isOpen && (
-                                <div className="w-[80vw] bg-orange-50 border-t border-gray-200 p-4 shadow-lg">
+                                <div className="w-[80vw] bg-[#FDF7E4] border-t border-gray-200 p-4 shadow-lg">
                                     {isLoading ? (
                                         <p className="text-sm text-gray-500">Loading addresses...</p>
                                     ) : isAddingAddress ? (
