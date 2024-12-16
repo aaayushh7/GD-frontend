@@ -13,7 +13,7 @@ import { useCheckLocationMutation } from '../redux/api/apiSlice';
 import bucketLogo from '../assets/logobucket.png';
 import RandomProducts from '../components/RandomProducts';
 import bannerImage from '../assets/Banner.png'
-import Ur from '../assets/ur.png';
+import Ur from '../assets/UrLogo2.svg';
 import ShopCategories from './ShopCategories';
 import HeaderAddressModal from './User/HeaderAddress';
 
@@ -209,7 +209,7 @@ const HomePage = () => {
     return (
       <div className="mb-8">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-sm text-gray-600">Regional Foods</h2>
+          <h2 className="text-md text-gray-600">Regional Foods</h2>
           
         </div>
         <div className="overflow-x-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
@@ -309,7 +309,7 @@ const HomePage = () => {
     <div className="min-h-screen bg-white">
 
 
-      <header className="px-4 py-3 mb-5 border-b border-gray-200 shadow-sm bg-[#FDF7E4]">
+      <header className="px-4 py-3 mb-[3rem] border-b border-gray-200 shadow-sm bg-[#FDF7E4]">
         <div className="flex items-center justify-center mb-3 mt-2">
         <HeaderAddressModal />
         <h1 className="text-2xl font-bold">
@@ -390,18 +390,18 @@ const HomePage = () => {
       </div>
 
       {!isSearchExpanded && (
-        <div className="px-4 mb-8">
-          <div
-            className="bg-fit bg-center rounded-md p-4 text-white"
-            style={{
-              backgroundImage: `url(${bannerImage})`,
-              width: '100%',
-              height: '9rem' // Or specify exact width if known
-            }}
-          >
-
-          </div>
+        <div className="flex justify-center mb-4">
+        <div
+          className="bg-fit bg-center rounded-md text-white"
+          style={{
+            backgroundImage: `url(${bannerImage})`,
+            width: '95%',
+            height: '9rem'
+          }}
+        >
+      
         </div>
+      </div>
       )}
 
       <main className="px-4 pb-8">

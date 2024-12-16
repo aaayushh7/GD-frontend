@@ -2,7 +2,6 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Box, Typography } from '@mui/material';
-import CartIcon from "../assets/cart";
 
 const CartButton = () => {
   const cartItems = useSelector((state) => state.cart.cartItems);
@@ -28,10 +27,10 @@ const CartButton = () => {
         bottom: 90,
         left: '50%',
         transform: 'translateX(-50%)',
-        zIndex: 90,
+        zIndex: 10,
         display: 'flex',
         width: '90%',
-        maxWidth: '400px',
+        maxWidth: '350px',
         borderRadius: '40px',
         overflow: 'hidden',
         boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
@@ -40,7 +39,7 @@ const CartButton = () => {
       <Box
         sx={{
           backgroundColor: '#ff7415', // Orange background
-          flex: 7,
+          flex: 5,
           display: 'flex',
           alignItems: 'center',
           padding: '10px 15px',
@@ -50,7 +49,6 @@ const CartButton = () => {
           }
         }}
       >
-        <CartIcon style={{ marginRight: '10px', color: 'white' }} />
         <Typography 
           sx={{
             color: '#FFFFFF',
@@ -58,7 +56,7 @@ const CartButton = () => {
             fontWeight: 400,
           }}
         >
-          {itemCount} Item{itemCount !== 1 ? 's' : ''} added to the cart
+          {itemCount} Item{itemCount !== 1 ? 's' : ''} added to ur cart
         </Typography>
       </Box>
       
@@ -78,8 +76,8 @@ const CartButton = () => {
           }
         }}
       >
-        <button className='px-3 text-sm py-1 font-semibold bg-[#0d6d3f] rounded-full'>
-          View Cart
+        <button className='px-3 text-sm py-1 bg-[#0d6d3f] rounded-full'>
+          View Bucket
         </button>
         
       </Box>

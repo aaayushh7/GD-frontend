@@ -57,10 +57,19 @@ const ProductCard = ({ p }) => {
   };
 
   return (
-    <div className="flex bg-[#f0f6f4] rounded-lg shadow-sm overflow-hidden p-2  transition-shadow duration-200">
+    <div className={`
+      flex rounded-lg shadow-sm overflow-hidden p-2 border-[1px] transition-all duration-200
+      ${itemInCart 
+        ? 'bg-gradient-to-r from-white to-[#cae6da] border-[#5c8072]' 
+        : 'bg-gradient-to-r from-white to-[#cae6da] '
+      }`}
+    >
       {/* Left Section - Image and Heart */}
-      <div className="relative w-[5.5rem] h-[5.5rem">
-        <div className="w-full h-full bg-gray-50 rounded-lg shadow-sm overflow-hidden">
+      <div className="relative w-[5.5rem] h-[6rem]">
+        <div className={`
+          w-full h-full rounded-lg shadow-sm overflow-hidden text-black
+          ${itemInCart ? 'opacity-80' : 'bg-gray-50'}
+        `}>
           <img
             src={p.image}
             alt={p.name}
@@ -76,7 +85,7 @@ const ProductCard = ({ p }) => {
             className={`${
               isFavorite 
                 ? 'text-red-500 fill-current' 
-                : 'text-gray-400'
+                : `${itemInCart ? 'text-gray-400' : 'text-gray-400'}`
             }`}
           />
         </button>
@@ -85,12 +94,16 @@ const ProductCard = ({ p }) => {
       {/* Right Section - Details */}
       <div className="flex-1 ml-4 flex flex-col justify-between">
         <div>
-          <h3 className=" font-semibold text-md text-gray-900 mb-1">{p?.name}</h3>
-          <p className="text-xs text-gray-600 mb-2">{p?.description}</p>
+          <h3 className={`font-semibold text-md mb-1 ${itemInCart ? 'text-black' : 'text-gray-900'}`}>
+            {p?.name}
+          </h3>
+          <p className={`text-xs mb-2 ${itemInCart ? 'text-gray-700' : 'text-gray-600'}`}>
+            {p?.description}
+          </p>
         </div>
         
         <div className="flex items-center justify-between">
-          <span className="text-sm font-semibold text-gray-900">
+          <span className={`text-sm font-semibold ${itemInCart ? 'text-gray-800' : 'text-gray-900'}`}>
             {p?.price?.toLocaleString('en-US', {
               style: 'currency',
               currency: 'INR',
@@ -100,23 +113,41 @@ const ProductCard = ({ p }) => {
           {quantity === 0 ? (
             <button
               onClick={handleAddToCart}
-              className="bg-[#055d33] text-white px-6 py-1 rounded-lg text-xs font-semibold hover:bg-[#2a4f28] transition-colors duration-200"
+              className="bg-[#055d33] text-white px-6 py-2 rounded-lg text-xs font-semibold hover:bg-[#2a4f28] transition-colors duration-200"
             >
               ADD
             </button>
           ) : (
-            <div className="flex items-center justify-center bg-gray-50 rounded-lg ">
+            <div className="flex items-center justify-center rounded-lg">
               <button
-                className="text-white p-1 hover:bg-gray-100 bg-[#055d33] transition-colors duration-200 rounded-md"
+                className={`
+                  p-1 transition-colors duration-200 rounded-md
+                  ${itemInCart 
+                    ? 'text-black border-white hover:bg-[#2a4f28] hover:text-white' 
+                    : 'text-black hover:text-white hover:bg-[#055d33] border-[1px] border-[#055d33]'
+                  }
+                `}
                 onClick={decrementQty}
               >
-                <FiMinus size={16} />
+                <FiMinus size={16}  />
               </button>
-              <span className="px-3 py-1 text-gray-800 font-semibold text-xs min-w-[24px] text-center bg-white">
+              <span className={`
+                px-3 py-1 font-semibold text-xs min-w-[24px] text-center rounded
+                ${itemInCart 
+                  ? ' text-black' 
+                  : 'bg-[#cae6da] text-gray-800'
+                }
+              `}>
                 {quantity}
               </span>
               <button
-                className="text-white p-1 hover:bg-gray-100 bg-[#055d33] transition-colors duration-200 rounded-md"
+                className={`
+                  p-1 transition-colors duration-200 rounded-md
+                  ${itemInCart 
+                    ? 'text-black border-white hover:bg-[#2a4f28] hover:text-white' 
+                    : 'text-black hover:text-white hover:bg-[#055d33] border-[1px] border-[#055d33]'
+                  }
+                `}
                 onClick={incrementQty}
               >
                 <FiPlus size={16} />

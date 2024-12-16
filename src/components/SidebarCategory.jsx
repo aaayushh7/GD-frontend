@@ -33,11 +33,11 @@ const CategorySidebar = ({ categories, selectedCategory, onCategorySelect }) => 
         `}
       </style>
 
-      <div className="fixed left-0 top-[8rem] h-[calc(100vh-13rem)] w-[6rem] bg-white z-40">
+      <div className="fixed left-0 top-[8rem] h-[calc(100vh-13rem)] w-[6rem] bg-white z-10">
         <div className="h-full overflow-y-auto overflow-x-hidden py-4 custom-scrollbar">
           <div className="flex flex-col items-center space-y-7 mb-2">
             {categories.map((category) => (
-              <div key={category._id} className="relative">
+              <div key={category._id} className="relative flex flex-col items-center">
                 {selectedCategory === category._id && (
                   <motion.div
                     layoutId="activeCategory"
@@ -49,7 +49,6 @@ const CategorySidebar = ({ categories, selectedCategory, onCategorySelect }) => 
                 <button
                   onClick={() => onCategorySelect(category._id)}
                   className={`relative w-[4.5rem] h-[4.5rem] mb-1 rounded-md flex items-center justify-center 
-                    
                     transition-all duration-200 bg-gray-100`}
                 >
                   <img
@@ -57,14 +56,10 @@ const CategorySidebar = ({ categories, selectedCategory, onCategorySelect }) => 
                     alt={category.name}
                     className="w-[4.5rem] h-[4.5rem] object-cover rounded-md"
                   />
-                  
                 </button>
-                <div className='w-full flex items-center justify-center'>
-                   <div className="text-xs text-gray-400">
-                    {category.name}
-                    </div>
-                  </div>
-                
+                <div className="text-xs text-gray-400 text-center w-full mt-1">
+                  {category.name}
+                </div>
               </div>
             ))}
           </div>
