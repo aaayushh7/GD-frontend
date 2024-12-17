@@ -209,7 +209,7 @@ const HomePage = () => {
     return (
       <div className="mb-8">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-md text-gray-600">Regional Foods</h2>
+          <h2 className="text-sm text-gray-600 tracking-wider">REGIONAL FOODS</h2>
           
         </div>
         <div className="overflow-x-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
@@ -234,11 +234,11 @@ const HomePage = () => {
                   onClick={() => handleCategoryClick(category._id)}
                   className={`flex flex-col items-center ${!showAllRegional ? 'w-24' : ''}`}
                 >
-                  <div className="w-[4.5rem] h-[4.5rem] rounded-lg bg-white  flex items-center justify-center hover:shadow-md transition-all overflow-hidden">
+                  <div className="w-[5rem] h-[5rem] rounded-lg bg-white  flex items-center justify-center hover:shadow-md transition-all overflow-hidden">
                     <img
                       src={category.image || './src/assets/12.png'}
                       alt={category.name}
-                      className="w-[4.5rem] h-[4.5rem] object-cover"
+                      className="w-[5rem] h-[5rem] object-cover"
                       onError={(e) => {
                         e.target.src = './src/assets/12.png'; // Fallback image if category image fails to load
                       }}
@@ -251,8 +251,8 @@ const HomePage = () => {
 
         </div>
         <div>
-          <h2 className="text-sm text-gray-600 mt-4 flex items-center">
-            <span>You might also like </span>
+          <h2 className="text-sm text-gray-600 mt-6 flex items-center tracking-wider">
+            <span>YOU MIGHT ALSO LIKE </span>
             <span className="flex-1 h-[1px] bg-green-500 ml-2"></span>
           </h2>
           <RandomProducts count={3} /> {/* Or use default of 3 */}
