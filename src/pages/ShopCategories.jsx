@@ -19,7 +19,7 @@ const ShopCategories = ({ categories, isCategoriesLoading, handleCategoryClick }
   const renderCategorySection = (categorySet, sectionIndex) => (
   <div className="mb-8" key={`section-${sectionIndex}`}>
     <div className="flex justify-between items-center mb-4">
-      <h2 className="text-md text-gray-700 w-full text-center">Shop ur things</h2>
+      <h2 className="text-md text-gray-700 w-full text-center tracking-wider p-3">SHOP YOUR THINGS</h2>
     </div>
     <div className="grid grid-cols-4 gap-4">
       {isCategoriesLoading
@@ -55,7 +55,7 @@ const renderCategorySectionSecond = (categorySet, sectionIndex) => (
   <div className="mb-8 bg-gradient-to-r from-white via-red-50 to-white" key={`section-${sectionIndex}`}>
     <div className="flex justify-center text-red-500 text-sm items-center mb-4">
       <span className="flex-1 h-[1px] bg-gradient-to-l from-red-400 to-white mr-3"></span>      
-      <span className="text-center">Bakery And Dairy</span>
+      <span className="text-center tracking-wider">BAKERY AND DAIRY</span>
       <span className="flex-1 h-[1px] bg-gradient-to-r from-red-400 to-white ml-3"></span>
     </div>
     <div className="grid grid-cols-4 gap-4">
@@ -92,7 +92,7 @@ const renderCategorySectionThird = (categorySet, sectionIndex) => (
   <div className="mb-8 bg-gradient-to-r from-white via-green-50 to-white rounded-full" key={`section-${sectionIndex}`}>
     <div className="flex justify-center text-green-700 text-sm items-center mb-4">
       <span className="flex-1 h-[1px] bg-gradient-to-l from-green-600 to-white mr-3"></span>      
-      <span className="text-center">Eggs, Meats & Seafoods</span>
+      <span className="text-center tracking-wider uppercase ">Eggs, Meats & Seafoods</span>
       <span className="flex-1 h-[1px] bg-gradient-to-r from-green-600 to-white ml-3"></span>
     </div>
     <div className="grid grid-cols-4 gap-4">
@@ -128,7 +128,7 @@ const renderCategorySectionFourth = (categorySet, sectionIndex) => (
   <div className="mb-8 bg-gradient-to-r from-white via-orange-50 to-white" key={`section-${sectionIndex}`}>
     <div className="flex justify-center text-orange-500 text-sm items-center mb-4">
       <span className="flex-1 h-[1px] bg-gradient-to-l from-orange-600 to-white mr-3"></span>      
-      <span className="text-center">Pan Corner</span>
+      <span className="text-center tracking-wider uppercase">Pan Corner</span>
       <span className="flex-1 h-[1px] bg-gradient-to-r from-orange-600 to-white ml-3"></span>
     </div>
     <div className="grid grid-cols-4 gap-4">

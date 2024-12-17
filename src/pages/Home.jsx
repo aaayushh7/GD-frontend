@@ -209,7 +209,7 @@ const HomePage = () => {
     return (
       <div className="mb-8">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-sm text-gray-600 tracking-wider">REGIONAL FOODS</h2>
+          <h2 className="text-sm text-gray-600 tracking-wider mt-2">REGIONAL FOODS</h2>
           
         </div>
         <div className="overflow-x-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
@@ -251,7 +251,7 @@ const HomePage = () => {
 
         </div>
         <div>
-          <h2 className="text-sm text-gray-600 mt-6 flex items-center tracking-wider">
+          <h2 className="text-sm text-gray-600 mt-9 flex items-center tracking-wider">
             <span>YOU MIGHT ALSO LIKE </span>
             <span className="flex-1 h-[1px] bg-green-500 ml-2"></span>
           </h2>
