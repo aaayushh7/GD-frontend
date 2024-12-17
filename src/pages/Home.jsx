@@ -326,24 +326,24 @@ const HomePage = () => {
         <div className="flex w-[80%] rounded-md text-sm bg-cream-100 border-[1px] border-[#afd1b2]">
           <button
             onClick={() => setActiveTab('Meal')}
-            className={`flex-1 py-1 text-center font-medium transition-all duration-200 ${activeTab === 'Meal'
+            className={`flex-1 py-1 text-center font-medium transition-all text-lg duration-200 ${activeTab === 'Meal'
               ? 'bg-[#1D3A1C] text-white rounded-md shadow-sm'
               : 'bg-[#FFF3E6] text-[#A5521C]'
               }`}
           >
             <span>
-              <img src={Ur} alt="Ur Logo" className="inline-block" /></span>
+              <img src={Ur} alt="Ur Logo" className="inline-block mb-1 h-[22px] w-[22px]" /></span>
             Meal
           </button>
           <button
             onClick={() => setActiveTab('Mart')}
-            className={`flex-1 py-1 text-center font-medium transition-all duration-200 ${activeTab === 'Mart'
+            className={`flex-1 py-1 text-center font-medium transition-all text-lg duration-200 ${activeTab === 'Mart'
               ? 'bg-[#1D3A1C] text-white rounded-md shadow-sm'
               : 'bg-[#FFF3E6] text-[#A5521C]'
               }`}
           >
             <span>
-            <img src={Ur} alt="Ur Logo" className="inline-block" /></span>
+            <img src={Ur} alt="Ur Logo" className="inline-block mb-1 h-[22px] w-[22px]"  /></span>
             Mart
           </button>
         </div>
