@@ -71,9 +71,7 @@ const CartButton = () => {
           padding: '10px 15px',
           cursor: 'pointer',
           transition: 'background-color 0.3s ease',
-          '&:hover': {
-            backgroundColor: '#004D00', // Slightly lighter green on hover
-          }
+          
         }}
       >
         <button className='px-3 text-sm py-1 bg-[#0d6d3f] rounded-full'>

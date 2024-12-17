@@ -233,14 +233,14 @@ const SimplifiedOrder = () => {
               className="flex justify-between items-center text-md pl-4 mb-9 cursor-pointer"
             >
               <span>Total Amount:</span>
-              <div className="flex items-center text-md">
+              <div className="flex items-center text-md font-semibold">
                 <span>₹{displayedTotalPrice.toFixed(2)}</span>
                 <motion.div
                   animate={{ rotate: showDetails ? 180 : 0 }}
                   transition={{ duration: 0.3 }}
                   className="ml-2"
                 >
-                  <FaChevronDown className="text-gray-500 pr-3 text-md" />
+                  <FaChevronDown className="text-gray-500 pr-3 " size={20}  />
                 </motion.div>
               </div>
             </div>
@@ -337,7 +337,7 @@ const SimplifiedOrder = () => {
                 onClick={() => setShowPaymentComponent(!showPaymentComponent)}
                 className="flex-col items-center cursor-pointer"
               >
-                <span className="text-[9px] mr-2 flex items-center text-orange-600">
+                <span className="text-[12px] mr-2 flex items-center text-orange-600">
                   Pay Using
                   <FaChevronDown
                     className="text-[7px] inline-block transition-transform duration-300 ease-in-out"
