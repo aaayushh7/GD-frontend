@@ -209,7 +209,7 @@ const HomePage = () => {
     return (
       <div className="mb-8">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-sm text-gray-600 tracking-wider mt-2">REGIONAL FOODS</h2>
+          <h2 className="text-sm text-gray-600 tracking-wider mt-2 font-semibold">REGIONAL FOODS</h2>
           
         </div>
         <div className="overflow-x-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
@@ -251,7 +251,7 @@ const HomePage = () => {
 
         </div>
         <div>
-          <h2 className="text-sm text-gray-600 mt-9 flex items-center tracking-wider">
+          <h2 className="text-sm text-gray-600 mt-9 flex items-center tracking-wider font-semibold">
             <span>YOU MIGHT ALSO LIKE </span>
             <span className="flex-1 h-[1px] bg-green-500 ml-2"></span>
           </h2>
@@ -309,24 +309,24 @@ const HomePage = () => {
     <div className="min-h-screen bg-white">
 
 
-      <header className="px-4 py-3 mb-[3rem] border-b border-gray-200 shadow-sm bg-[#FDF7E4]">
+      <header className="w-full py-3 mb-[3rem] border-b border-gray-200 shadow-sm bg-[#FDF7E4]">
         <div className="flex items-center justify-center mb-3 mt-2">
         <HeaderAddressModal />
         <h1 className="text-2xl font-bold">
             <img
               src={bucketLogo}
               alt="Bucket Logo"
-              className="h-8 w-auto bg-gradient-to-r from-green-500 to-orange-500 bg-clip-text text-transparent"
+              className="h-10 w-auto bg-gradient-to-r from-green-500 to-orange-500 bg-clip-text text-transparent"
             />
           </h1>
         </div>
       </header>
 
-      <div className="w-full flex items-center justify-center">
+      <div className="w-full flex items-center justify-center rounded-md">
         <div className="flex w-[80%] rounded-md text-sm bg-cream-100 border-[1px] border-[#afd1b2]">
           <button
             onClick={() => setActiveTab('Meal')}
-            className={`flex-1 py-1 text-center font-medium transition-all text-lg duration-200 ${activeTab === 'Meal'
+            className={`flex-1 py-1 text-center rounded-md font-medium transition-all text-lg duration-200 ${activeTab === 'Meal'
               ? 'bg-[#1D3A1C] text-white rounded-md shadow-sm'
               : 'bg-[#FFF3E6] text-[#A5521C]'
               }`}
@@ -337,7 +337,7 @@ const HomePage = () => {
           </button>
           <button
             onClick={() => setActiveTab('Mart')}
-            className={`flex-1 py-1 text-center font-medium transition-all text-lg duration-200 ${activeTab === 'Mart'
+            className={`flex-1 py-1 text-center rounded-md font-medium transition-all text-lg duration-200 ${activeTab === 'Mart'
               ? 'bg-[#1D3A1C] text-white rounded-md shadow-sm'
               : 'bg-[#FFF3E6] text-[#A5521C]'
               }`}
@@ -361,7 +361,7 @@ const HomePage = () => {
                 value={searchQuery}
                 onChange={handleSearch}
                 placeholder="What do you want to eat?"
-                className="w-full pl-10 pr-4 py-1 rounded-xl border-[1px] border-[#afd1b2] focus:border-gray-400 transition-colors"
+                className="w-full pl-10 pr-4 py-1 rounded-xl border-[1px] bg-green-50 border-[#afd1b2] focus:border-gray-400 transition-colors"
               />
               <button
                 onClick={toggleSearch}
@@ -381,7 +381,7 @@ const HomePage = () => {
                 type="text"
                 placeholder="What do you want to eat?"
                 onClick={toggleSearch}
-                className="w-full pl-10 pr-4 py-1 rounded-xl border-[1px] border-[#afd1b2] focus:border-gray-400 transition-colors cursor-pointer"
+                className="w-full pl-10 pr-4 py-1 rounded-xl border-[1px] bg-green-50 border-[#afd1b2] focus:border-gray-400 transition-colors cursor-pointer"
                 readOnly
               />
             </motion.div>
@@ -395,8 +395,8 @@ const HomePage = () => {
           className="bg-fit bg-center rounded-md text-white"
           style={{
             backgroundImage: `url(${bannerImage})`,
-            width: '95%',
-            height: '9rem'
+            width: '92%',
+            height: '9.4rem'
           }}
         >
       

@@ -12,7 +12,8 @@ const HeaderAddressModal = () => {
 
     const {
         data: userAddresses,
-        isLoading
+        isLoading,
+        refetch
     } = useGetUserAddressesQuery();
 
     const defaultAddress = userAddresses?.find(addr => addr.isDefault);
@@ -36,6 +37,10 @@ const HeaderAddressModal = () => {
     }, [modalRef, iconRef, defaultAddressRef]);
 
     const toggleModal = () => {
+        // Refetch addresses when the modal is opened
+        if (!isOpen) {
+            refetch();
+        }
         setIsOpen(!isOpen);
     };
 
@@ -53,15 +58,15 @@ const HeaderAddressModal = () => {
     );
 
     return (
-        <div className="relative">
-            <div className="absolute -left-[7rem] -top-2">
+        <div className="">
+            <div className="absolute left-0 top-7">
                 <div ref={iconRef}>
                     <FaCircle
                         onClick={toggleModal}
-                        className="text-xl cursor-pointer text-green-700 hover:text-orange-500 transition-colors"
+                        className="text-xl ml-6 cursor-pointer text-green-700 hover:text-orange-500 transition-colors"
                     />
                 </div>
-                <div className="absolute -left-[22px] mt-2 w-[100vw] z-50">
+                <div className="absolute left-0 mt-2 w-[100vw] z-5">
                     {/* Always show the background with content based on loading or address status */}
                     <div className="mt-2 bg-[#FDF7E4] p-2 min-h-[50px] rounded-xl flex items-center justify-center">
                         {isLoading ? (
