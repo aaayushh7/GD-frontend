@@ -22,8 +22,7 @@ import HeaderAddressModal from './User/HeaderAddress';
 const SkeletonLoader = {
   Category: () => (
     <div className="flex flex-col items-center w-24">
-      <div className="w-20 h-20 bg-gray-200 rounded-full mb-2 animate-pulse"></div>
-      <div className="h-4 w-16 bg-gray-200 rounded animate-pulse"></div>
+      <div className="w-20 h-20 bg-gray-200 rounded-md mb-2 animate-pulse"></div>
     </div>
   ),
 
@@ -223,8 +222,12 @@ const HomePage = () => {
           <div className={`grid grid-rows-2 grid-flow-col gap-4 ${showAllRegional ? 'grid-cols-3 grid-rows-4' : ''}`}
             style={{ minWidth: showAllRegional ? '100%' : 'auto' }}>
             {isCategoriesLoading
-              ? Array(8).fill(null).map((_, index) => (
-                <SkeletonLoader.Category key={`skeleton-regional-${index}`} />
+              ? Array(showAllRegional ? 12 : 8).fill(null).map((_, index) => (
+                <SkeletonLoader.Category 
+                    key={`skeleton-regional-${index}`} 
+                    // Optional: You can pass props to make skeleton responsive
+                    className={`${!showAllRegional ? 'w-24' : ''}`}
+                />
               ))
               : regionalCategories?.map((category) => (
                 <motion.div
@@ -376,7 +379,7 @@ const HomePage = () => {
               animate={{ opacity: 1 }}
               className="relative"
             >
-              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 z-1" />
               <input
                 type="text"
                 placeholder="What do you want to eat?"

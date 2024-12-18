@@ -88,7 +88,7 @@ const CartRecommendation = ({ count = 3 }) => {
           : randomProducts.map((product) => (
               <motion.div
                 key={product._id}
-                className="flex-shrink-0 w-[calc(100%/1.1)] sm:w-[calc(100%/2)] lg:w-[calc(100%/3)]"
+                className="flex-shrink-0 w-[calc(100%/1.5)] sm:w-[calc(100%/2)] lg:w-[calc(100%/3)]"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
