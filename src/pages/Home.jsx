@@ -1,24 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { setChecked } from '../redux/features/shop/shopSlice';
 import { useFetchCategoriesQuery } from '../redux/api/categoryApiSlice';
 import { useAllProductsQuery } from "../redux/api/productApiSlice";
-import { FaSearch, FaBars, FaUser, FaTimes } from "react-icons/fa";
-import { MdLocationOn } from "react-icons/md";
-import imagePlaceholder from '../assets/12.png';
+import { FaSearch, FaTimes } from "react-icons/fa";
 import ProductCard from "./Products/ProductCard";
-import { useCheckLocationMutation } from '../redux/api/apiSlice';
 import bucketLogo from '../assets/logobucket.png';
 import RandomProducts from '../components/RandomProducts';
-import bannerImage from '../assets/Banner.png'
+import bannerImage from '../assets/Banner.png';
 import Ur from '../assets/UrLogo2.svg';
 import ShopCategories from './ShopCategories';
 import HeaderAddressModal from './User/HeaderAddress';
 
-
-// Skeleton Components
 const SkeletonLoader = {
   Category: () => (
     <div className="flex flex-col items-center w-24">
@@ -46,48 +41,6 @@ const SkeletonLoader = {
   )
 };
 
-const LocationCheck = ({ status, onRetry }) => (
-  <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-bl from-yellow-200 to-yellow-500">
-    <motion.div
-      initial={{ scale: 0 }}
-      animate={{ scale: 1 }}
-      transition={{ duration: 0.5 }}
-      className="bg-white rounded-full p-8 shadow-lg"
-    >
-      <MdLocationOn className="text-8xl text-red-500" />
-    </motion.div>
-    <motion.h2
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.5 }}
-      className="mt-8 text-3xl font-bold text-white text-center"
-    >
-      {status === 'checking' ? 'Checking your location...' : 'Location not available'}
-    </motion.h2>
-    {status === 'unavailable' && (
-      <>
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.7 }}
-          className="mt-4 text-xl text-white text-center"
-        >
-          Sorry, our service is currently not available in your area or we couldn't access your location.
-        </motion.p>
-        <motion.button
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.9 }}
-          className="mt-4 bg-white text-yellow-500 px-6 py-2 rounded-full font-bold"
-          onClick={onRetry}
-        >
-          Retry
-        </motion.button>
-      </>
-    )}
-  </div>
-);
-
 const HomePage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -96,27 +49,14 @@ const HomePage = () => {
   const [displayedProducts, setDisplayedProducts] = useState([]);
   const [shouldFetchProducts, setShouldFetchProducts] = useState(false);
   const [showAllRegional, setShowAllRegional] = useState(true);
-  const [showAllShop, setShowAllShop] = useState(true);
-  const [locationStatus, setLocationStatus] = useState(() => {
-    const storedStatus = localStorage.getItem('locationStatus');
-    return storedStatus || 'checking';
-  });
-  const [checkLocation] = useCheckLocationMutation();
   const [activeTab, setActiveTab] = useState('Meal');
-
 
   const { data: categories, isLoading: isCategoriesLoading } = useFetchCategoriesQuery();
   const { data: allProducts, isLoading: isLoadingProducts } = useAllProductsQuery(undefined, {
     skip: !shouldFetchProducts
   });
 
-  useEffect(() => {
-    if (locationStatus === 'checking') {
-      checkUserLocation();
-    }
-  }, []);
-
-  useEffect(() => {
+  React.useEffect(() => {
     if (allProducts && shouldFetchProducts) {
       updateDisplayedProducts(allProducts, searchQuery);
     }
@@ -132,54 +72,6 @@ const HomePage = () => {
       setDisplayedProducts(products);
     }
   };
-
-  const handleBannerClick = () => {
-    if (categories && categories.length >= 4) {
-      dispatch(setChecked([categories[3]._id]));
-      navigate('/shop');
-    }
-  };
-
-  const checkUserLocation = () => {
-    setLocationStatus('checking');
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          try {
-            const result = await checkLocation({
-              latitude: position.coords.latitude,
-              longitude: position.coords.longitude
-            }).unwrap();
-            const newStatus = result.isAllowed ? 'allowed' : 'unavailable';
-            setLocationStatus(newStatus);
-            localStorage.setItem('locationStatus', newStatus);
-          } catch (error) {
-            console.error('Error checking location:', error);
-            setLocationStatus('unavailable');
-            localStorage.setItem('locationStatus', 'unavailable');
-          }
-        },
-        (error) => {
-          console.error('Error getting location:', error);
-          setLocationStatus('unavailable');
-          localStorage.setItem('locationStatus', 'unavailable');
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 5000,
-          maximumAge: 0
-        }
-      );
-    } else {
-      console.error('Geolocation is not supported by this browser.');
-      setLocationStatus('unavailable');
-      localStorage.setItem('locationStatus', 'unavailable');
-    }
-  };
-
-  if (locationStatus === 'checking' || locationStatus === 'unavailable') {
-    return <LocationCheck status={locationStatus} onRetry={checkUserLocation} />;
-  }
 
   const handleCategoryClick = (categoryId) => {
     dispatch(setChecked([categoryId]));
@@ -209,7 +101,6 @@ const HomePage = () => {
       <div className="mb-8">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-sm text-gray-600 tracking-wider mt-2 font-semibold">REGIONAL FOODS</h2>
-          
         </div>
         <div className="overflow-x-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
           <style>
@@ -224,8 +115,7 @@ const HomePage = () => {
             {isCategoriesLoading
               ? Array(showAllRegional ? 12 : 8).fill(null).map((_, index) => (
                 <SkeletonLoader.Category 
-                    key={`skeleton-regional-${index}`} 
-                    // Optional: You can pass props to make skeleton responsive
+                    key={`skeleton-regional-${index}`}
                     className={`${!showAllRegional ? 'w-24' : ''}`}
                 />
               ))
@@ -237,28 +127,26 @@ const HomePage = () => {
                   onClick={() => handleCategoryClick(category._id)}
                   className={`flex flex-col items-center ${!showAllRegional ? 'w-24' : ''}`}
                 >
-                  <div className="w-[5rem] h-[5rem] rounded-lg bg-white  flex items-center justify-center hover:shadow-md transition-all overflow-hidden">
+                  <div className="w-[5rem] h-[5rem] rounded-lg bg-white flex items-center justify-center hover:shadow-md transition-all overflow-hidden">
                     <img
                       src={category.image || './src/assets/12.png'}
                       alt={category.name}
                       className="w-[5rem] h-[5rem] object-cover"
                       onError={(e) => {
-                        e.target.src = './src/assets/12.png'; // Fallback image if category image fails to load
+                        e.target.src = './src/assets/12.png';
                       }}
                     />
                   </div>
                 </motion.div>
               ))}
           </div>
-
-
         </div>
         <div>
           <h2 className="text-sm text-gray-600 mt-9 flex items-center tracking-wider font-semibold">
             <span>YOU MIGHT ALSO LIKE </span>
             <span className="flex-1 h-[1px] bg-green-500 ml-2"></span>
           </h2>
-          <RandomProducts count={3} /> {/* Or use default of 3 */}
+          <RandomProducts count={3} />
         </div>
       </div>
     );
@@ -310,12 +198,10 @@ const HomePage = () => {
 
   return (
     <div className="min-h-screen bg-white">
-
-
       <header className="w-full py-3 mb-[3rem] border-b border-gray-200 shadow-sm bg-[#FDF7E4]">
         <div className="flex items-center justify-center mb-3 mt-2">
-        <HeaderAddressModal />
-        <h1 className="text-2xl font-bold">
+          <HeaderAddressModal />
+          <h1 className="text-2xl font-bold">
             <img
               src={bucketLogo}
               alt="Bucket Logo"
@@ -329,30 +215,35 @@ const HomePage = () => {
         <div className="flex w-[80%] rounded-md text-sm bg-cream-100 border-[1px] border-[#afd1b2]">
           <button
             onClick={() => setActiveTab('Meal')}
-            className={`flex-1 py-1 text-center rounded-md font-medium transition-all text-lg duration-200 ${activeTab === 'Meal'
-              ? 'bg-[#1D3A1C] text-white rounded-md shadow-sm'
-              : 'bg-[#FFF3E6] text-[#A5521C]'
-              }`}
+            className={`flex-1 py-1 text-center rounded-md font-medium transition-all text-lg duration-200 ${
+              activeTab === 'Meal'
+                ? 'bg-[#1D3A1C] text-white rounded-md shadow-sm'
+                : 'bg-[#FFF3E6] text-[#A5521C]'
+            }`}
           >
             <span>
-              <img src={Ur} alt="Ur Logo" className="inline-block mb-1 h-[22px] w-[22px]" /></span>
+              <img src={Ur} alt="Ur Logo" className="inline-block mb-1 h-[22px] w-[22px]" />
+            </span>
             Meal
           </button>
           <button
             onClick={() => setActiveTab('Mart')}
-            className={`flex-1 py-1 text-center rounded-md font-medium transition-all text-lg duration-200 ${activeTab === 'Mart'
-              ? 'bg-[#1D3A1C] text-white rounded-md shadow-sm'
-              : 'bg-[#FFF3E6] text-[#A5521C]'
-              }`}
+            className={`flex-1 py-1 text-center rounded-md font-medium transition-all text-lg duration-200 ${
+              activeTab === 'Mart'
+                ? 'bg-[#1D3A1C] text-white rounded-md shadow-sm'
+                : 'bg-[#FFF3E6] text-[#A5521C]'
+            }`}
           >
             <span>
-            <img src={Ur} alt="Ur Logo" className="inline-block mb-1 h-[22px] w-[22px]"  /></span>
+              <img src={Ur} alt="Ur Logo" className="inline-block mb-1 h-[22px] w-[22px]" />
+            </span>
             Mart
           </button>
         </div>
       </div>
+
       <div className="px-4 mb-6 mt-4">
-        <div className="relative w-ful ">
+        <div className="relative w-full">
           {isSearchExpanded ? (
             <motion.div
               initial={{ opacity: 0 }}
@@ -394,17 +285,15 @@ const HomePage = () => {
 
       {!isSearchExpanded && (
         <div className="flex justify-center mb-4">
-        <div
-          className="bg-fit bg-center rounded-md text-white"
-          style={{
-            backgroundImage: `url(${bannerImage})`,
-            width: '92%',
-            height: '9.4rem'
-          }}
-        >
-      
+          <div
+            className="bg-fit bg-center rounded-md text-white"
+            style={{
+              backgroundImage: `url(${bannerImage})`,
+              width: '92%',
+              height: '9.4rem'
+            }}
+          />
         </div>
-      </div>
       )}
 
       <main className="px-4 pb-8">
