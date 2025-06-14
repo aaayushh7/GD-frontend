@@ -6,9 +6,12 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import CartButton from "./components/CartButton";
 import SplashScreen from "./SplashScreen";
+import { useCapacitor } from "./hooks/useCapacitor";
+import NotificationService from "./services/NotificationService";
 
 const App = () => {
   const [showContent, setShowContent] = React.useState(false);
+  const { isNative } = useCapacitor();
 
   // This effect will run after splash screen is done
   React.useEffect(() => {
@@ -18,6 +21,13 @@ const App = () => {
 
     return () => clearTimeout(timer);
   }, []);
+
+  // Initialize notification service
+  React.useEffect(() => {
+    if (isNative) {
+      NotificationService.initializePushNotifications();
+    }
+  }, [isNative]);
 
   return (
     <>
@@ -68,7 +78,7 @@ const App = () => {
             }}
           />
           <Navigation />
-          <main className="min-h-screen bg-amber-50">
+          <main className={`min-h-screen bg-amber-50 ${isNative ? 'pt-safe-area-inset-top pb-safe-area-inset-bottom' : ''}`}>
             <Outlet />
             <CartButton />
           </main>
